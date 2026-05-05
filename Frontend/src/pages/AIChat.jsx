@@ -4,12 +4,10 @@ import { ArrowLeft, Send, Bot } from 'lucide-react';
 
 export default function AIChat() {
   const navigate = useNavigate();
-  const [messages, setMessages] = useState([
-    { role: 'ai', text: "Hi Ivan! I'm your personal Remindarin AI. How can I help you today?" }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [hasUserMessaged, setHasUserMessaged] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(true);
 
   const sendMessage = () => {
     if (!input.trim()) return;
@@ -17,8 +15,8 @@ export default function AIChat() {
     const userMsg = input.trim();
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setInput('');
+    setShowWelcome(false);
     setIsTyping(true);
-    setHasUserMessaged(true);
 
     setTimeout(() => {
       let reply = "Got it. What else can I help you with?";
@@ -44,27 +42,53 @@ export default function AIChat() {
   return (
     <div className="min-h-screen bg-background text-text-primary flex flex-col">
       <div className="fixed top-0 left-0 right-0 z-50 bg-foundation/95 backdrop-blur-lg border-b border-border">
-        <div className="max-w-3xl mx-auto px-6 h-16 flex items-center">
-          <button 
-            onClick={() => navigate('/dashboard')} 
-            className="p-2 text-text-secondary hover:text-text-primary transition-colors"
-          >
-            <ArrowLeft size={22} />
-          </button>
+        <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => navigate('/dashboard')} 
+              className="p-2 text-text-secondary hover:text-text-primary transition-colors"
+            >
+              <ArrowLeft size={22} />
+            </button>
+            <div className="w-9 h-9 bg-primary rounded-2xl flex items-center justify-center">
+              <Bot size={18} className="text-text-inverse" />
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="flex-1 max-w-3xl mx-auto w-full px-6 pt-20 pb-24 overflow-y-auto">
-        <div className="space-y-6 py-8">
-          {!hasUserMessaged && messages.length === 1 && (
-            <div className="flex justify-start">
-              <div className="max-w-[85%] px-6 py-4 rounded-3xl text-[15px] leading-relaxed bg-foundation border border-border rounded-bl-none">
-                {messages[0].text}
-              </div>
+        {showWelcome && messages.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-[60vh] text-center">
+            <div className="w-20 h-20 bg-primary rounded-3xl flex items-center justify-center mb-8">
+              <Bot size={40} className="text-text-inverse" />
             </div>
-          )}
+            <div className="text-4xl font-semibold tracking-tight mb-3">Remindarin AI</div>
+            <div className="text-xl text-text-secondary max-w-xs">Your personal assistant for smarter reminders and better days.</div>
+            
+            <div className="mt-12 grid grid-cols-1 gap-3 w-full max-w-xs">
+              {[
+                "Help me plan my day",
+                "What should I focus on now?",
+                "How's my streak looking?"
+              ].map((prompt, i) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                    setInput(prompt);
+                    setTimeout(() => sendMessage(), 100);
+                  }}
+                  className="text-left px-5 py-4 bg-foundation border border-border rounded-2xl hover:border-primary/50 transition-colors text-sm"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
-          {messages.slice(hasUserMessaged ? 0 : 1).map((msg, index) => (
+        <div className="space-y-6 py-8">
+          {messages.map((msg, index) => (
             <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[85%] px-6 py-4 rounded-3xl text-[15px] leading-relaxed ${msg.role === 'user' 
                 ? 'bg-primary text-text-inverse rounded-br-none' 
