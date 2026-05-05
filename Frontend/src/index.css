@@ -1,0 +1,27 @@
+:root {
+  --color-primary: #1F2A44;
+  --color-foundation: #0F172A;
+  --color-accent-positive: #16A34A;
+  --color-warning: #F59E0B;
+  --color-background: #F8FAFC;
+  --color-border: #E2E8F0;
+  --color-text-primary: #020617;
+  --color-text-secondary: #64748B;
+  --color-text-inverse: #FFFFFF;
+}
+
+.dark {
+  --color-background: #0C0F12;
+  --color-foundation: #0F172A;
+  --color-text-primary: #F8FAFC;
+  --color-text-secondary: #94A3B8;
+  --color-border: #2A3441;
+  --color-primary: #2B3A67;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+}
