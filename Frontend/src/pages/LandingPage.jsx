@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, Zap, Clock, Users, PlayCircle, Shield } from 'lucide-react';
 import Button from '../components/ui/Button';
@@ -14,6 +15,7 @@ export default function LandingPage() {
   const [name, setName] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [testNotification, setTestNotification] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -33,9 +35,9 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen overflow-hidden">
-      <Navbar 
+   <Navbar 
         onWaitlistClick={() => setWaitlistOpen(true)} 
-        onDevClick={() => setDevOpen(true)} 
+        onDevClick={() => navigate('/dashboard')} 
       />
 
       <section className="pt-20 min-h-[100dvh] flex items-center bg-gradient-to-b from-background to-background/90 dark:from-foundation dark:to-foundation/80">
@@ -267,76 +269,6 @@ export default function LandingPage() {
             <Button onClick={() => { setWaitlistOpen(false); setSubmitted(false); }} variant="secondary" className="mt-8">Close</Button>
           </div>
         )}
-      </BottomSheet>
-
-      <BottomSheet 
-        isOpen={devOpen} 
-        onClose={() => setDevOpen(false)} 
-        title="Developer Dashboard — Preview"
-      >
-        <div className="space-y-8">
-          <div>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="px-3 py-1 bg-accent-positive/10 text-accent-positive text-xs font-medium rounded-full">LIVE PREVIEW</div>
-              <div className="text-xs text-text-secondary">Simulated data • Not connected to real backend</div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { label: 'Waitlist Signups', value: '3,247', change: '+18%' },
-                { label: 'Reminders Delivered', value: '142,891', change: '+9%' },
-                { label: 'Avg. Context Accuracy', value: '94.2%', change: '+2.1%' },
-                { label: 'Active Today', value: '1,184', change: '+31%' }
-              ].map((stat, idx) => (
-                <div key={idx} className="bg-background border border-border rounded-2xl p-5">
-                  <div className="text-sm text-text-secondary">{stat.label}</div>
-                  <div className="text-4xl font-semibold text-text-primary mt-1 tracking-tighter">{stat.value}</div>
-                  <div className="text-xs text-accent-positive mt-1">{stat.change} this week</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="font-semibold text-lg">Recent Activity</div>
-              <Button variant="ghost" className="text-xs px-4 py-1" onClick={() => {
-                setTestNotification(true);
-                setTimeout(() => setTestNotification(false), 4200);
-              }}>Trigger Test Reminder</Button>
-            </div>
-            <div className="space-y-3 text-sm">
-              {[
-                { time: '2m ago', text: 'Reminder sent: "Call mom" to Sarah K.' },
-                { time: '14m ago', text: 'Location trigger: Grocery list at Whole Foods' },
-                { time: '47m ago', text: 'Energy low detected — postponed workout reminder' }
-              ].map((act, i) => (
-                <div key={i} className="flex justify-between bg-background border border-border rounded-2xl px-5 py-4">
-                  <div className="text-text-primary">{act.text}</div>
-                  <div className="text-text-secondary text-xs self-center">{act.time}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {testNotification && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-foundation border border-accent-positive shadow-xl rounded-2xl px-6 py-4 flex items-center gap-4 z-[200] max-w-[340px]"
-            >
-              <div className="text-accent-positive">🔔</div>
-              <div className="flex-1">
-                <div className="font-medium text-sm">Reminder triggered</div>
-                <div className="text-xs text-text-secondary">Buy oat milk — you are 200m from the store</div>
-              </div>
-              <button onClick={() => setTestNotification(false)} className="text-text-secondary">✕</button>
-            </motion.div>
-          )}
-
-          <div className="pt-4 border-t border-border text-xs text-center text-text-secondary">
-            This is a simulated developer preview. Full dashboard available after launch.
-          </div>
-        </div>
       </BottomSheet>
     </div>
   );
