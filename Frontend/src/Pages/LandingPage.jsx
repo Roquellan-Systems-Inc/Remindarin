@@ -318,7 +318,7 @@ export default function LandingPage() {
           )}
 
           <div className="pt-4 border-t border-border text-xs text-center text-text-secondary">
-            This is a simulated developer preview. Full dashboard available after launch.
+            This is a simulated developer preview. Full dashboard available after launch..
           </div>
         </div>
       </BottomSheet>
