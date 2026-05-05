@@ -15,7 +15,6 @@ export default function LandingPage() {
   const [submitted, setSubmitted] = useState(false);
   const [testNotification, setTestNotification] = useState(false);
 
-  // Automatic dark mode detection (reacts to system changes)
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     
@@ -39,8 +38,7 @@ export default function LandingPage() {
         onDevClick={() => setDevOpen(true)} 
       />
 
-      {/* Hero Section */}
-      <section className="pt-20 min-h-[100dvh] flex items-center bg-gradient-to-b from-background to-foundation/30 dark:from-foundation dark:to-background/30">
+      <section className="pt-20 min-h-[100dvh] flex items-center bg-gradient-to-b from-background to-foundation/30 dark:from-foundation dark:to-foundation/80">
         <div className="max-w-5xl mx-auto px-6 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-3xl bg-foundation border border-border mb-6">
             <div className="w-2 h-2 bg-accent-positive rounded-full animate-pulse" />
@@ -67,7 +65,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Problem Section */}
       <section id="problem" className="max-w-5xl mx-auto px-6 py-24">
         <div className="text-center mb-16">
           <div className="text-accent-positive text-sm font-semibold tracking-[1px] mb-3">THE PROBLEM</div>
@@ -100,7 +97,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* How it Works */}
       <section id="how" className="bg-foundation py-24">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-16">
@@ -135,7 +131,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Key Benefits */}
       <section id="benefits" className="max-w-5xl mx-auto px-6 py-24">
         <div className="text-center mb-16">
           <div className="text-accent-positive text-sm font-semibold tracking-[1px] mb-3">WHY PEOPLE LOVE IT</div>
@@ -168,7 +163,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials */}
       <section id="testimonials" className="bg-foundation py-24">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-16">
@@ -203,7 +197,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Final CTA */}
       <section className="max-w-3xl mx-auto px-6 py-24 text-center">
         <div className="text-accent-positive text-sm font-semibold tracking-[1px] mb-4">LAST CHANCE TO GET EARLY ACCESS</div>
         <h2 className="text-6xl font-semibold tracking-tighter text-text-primary mb-6">Ready to never forget the right things again?</h2>
@@ -212,7 +205,6 @@ export default function LandingPage() {
         <p className="mt-6 text-xs text-text-secondary">We’ll notify you as soon as Remindarin is available. No spam, ever.</p>
       </section>
 
-      {/* FAQ */}
       <section className="max-w-3xl mx-auto px-6 pb-24">
         <div className="text-center mb-12">
           <div className="text-accent-positive text-sm font-semibold tracking-[1px] mb-3">QUESTIONS?</div>
@@ -238,7 +230,6 @@ export default function LandingPage() {
 
       <Footer />
 
-      {/* Waitlist BottomSheet */}
       <BottomSheet 
         isOpen={waitlistOpen} 
         onClose={() => { setWaitlistOpen(false); setSubmitted(false); setEmail(''); setName(''); }} 
@@ -278,7 +269,6 @@ export default function LandingPage() {
         )}
       </BottomSheet>
 
-      {/* Developer Dashboard BottomSheet */}
       <BottomSheet 
         isOpen={devOpen} 
         onClose={() => setDevOpen(false)} 
