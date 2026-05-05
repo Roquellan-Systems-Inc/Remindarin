@@ -13,14 +13,14 @@ export default function Navbar({ onWaitlistClick, onDevClick }) {
   const scrollTo = (id) => {
     const el = document.getElementById(id);
     if (el) {
-      const y = el.getBoundingClientRect().top + window.scrollY - 80;
+      const y = el.getBoundingClientRect().top + window.scrollY - 64;
       window.scrollTo({ top: y, behavior: 'smooth' });
     }
     setMobileOpen(false);
   };
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 dark:bg-foundation/95 backdrop-blur-lg border-b border-border dark:border-border py-4">
-      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 dark:bg-foundation/95 backdrop-blur-lg border-b border-border dark:border-border py-3">
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 bg-primary rounded-2xl flex items-center justify-center">
             <span className="text-text-inverse font-bold text-xl">R</span>
