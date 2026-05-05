@@ -1,5 +1,5 @@
 import React from 'react';
-import Button from '../../ui/Button';
+import Button from '../ui/Button';
 import { Calendar, Clock, Target } from 'lucide-react';
 
 export default function QuickActions({ onPlanDay, onReviewYesterday, onFocusMode }) {
