@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, Zap, Clock, Users, PlayCircle, Shield } from 'lucide-react';
 import Button from '../components/ui/Button';
@@ -14,6 +14,27 @@ export default function LandingPage() {
   const [name, setName] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [testNotification, setTestNotification] = useState(false);
+
+  // Automatic dark mode detection (reacts to system changes)
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const handleChange = () => {
+      if (mediaQuery.matches) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    };
+
+    // Set initial state
+    handleChange();
+
+    // Listen for system theme changes
+    mediaQuery.addEventListener('change', handleChange);
+
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
 
   return (
     <div className="min-h-screen overflow-hidden">
