@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, X } from 'lucide-react';
+import { ArrowLeft, X, Bot } from 'lucide-react';
 import TodaysOverview from '../components/dashboard/TodaysOverview';
 import QuickCaptureButton from '../components/dashboard/QuickCaptureButton';
 import UpcomingReminders from '../components/dashboard/UpcomingReminders';
@@ -17,14 +17,12 @@ export default function Dashboard() {
     { id: 4, text: "Call mom", time: "19:30", context: "Personal", completed: false }
   ]);
   const [energyLevel, setEnergyLevel] = useState('medium');
-  const [aiEnabled, setAiEnabled] = useState(true);
   const [showCaptureModal, setShowCaptureModal] = useState(false);
   const [newReminder, setNewReminder] = useState({ text: '', time: '09:00', context: 'Work' });
   const [showFocusModal, setShowFocusModal] = useState(false);
   const [focusTime, setFocusTime] = useState(25 * 60);
   const [isFocusRunning, setIsFocusRunning] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [showToast, setShowToast] = useState(false);
 
   const completedToday = reminders.filter(r => r.completed).length;
   const streak = 12;
@@ -75,15 +73,6 @@ export default function Dashboard() {
     setShowFocusModal(true);
   };
 
-  const toggleAI = () => {
-    const newState = !aiEnabled;
-    setAiEnabled(newState);
-    if (newState) {
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 2000);
-    }
-  };
-
   const handleSuggestionAdd = (suggestion) => {
     addReminder(suggestion, '10:00', 'Work');
   };
@@ -132,18 +121,6 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3 bg-background border border-border rounded-2xl px-4 py-1.5">
-              <span className="text-sm font-medium text-text-secondary">AI Mode</span>
-              <button
-                onClick={toggleAI}
-                className={`relative w-11 h-6 rounded-full transition-colors ${aiEnabled ? 'bg-accent-positive' : 'bg-border'}`}
-              >
-                <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${aiEnabled ? 'translate-x-5' : ''}`} />
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -180,6 +157,14 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      <button
+        onClick={() => navigate('/ai')}
+        className="fixed bottom-8 right-8 z-50 w-14 h-14 bg-primary rounded-2xl flex items-center justify-center text-text-inverse shadow-lg hover:bg-[#2B3A67] active:scale-95 transition-all"
+        aria-label="Open AI Assistant"
+      >
+        <Bot size={24} />
+      </button>
 
       {showCaptureModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-6">
@@ -288,12 +273,6 @@ export default function Dashboard() {
               Got it, thanks
             </button>
           </div>
-        </div>
-      )}
-
-      {showToast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-foundation border border-accent-positive text-accent-positive px-6 py-3 rounded-2xl text-sm font-medium shadow-xl z-[90]">
-          AI Mode enabled — suggestions now smarter
         </div>
       )}
     </div>
