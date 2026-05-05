@@ -19,7 +19,7 @@ export default function Navbar({ onWaitlistClick, onDevClick }) {
     setMobileOpen(false);
   };
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-b border-border">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 dark:bg-foundation/95 backdrop-blur-lg border-b border-border dark:border-border py-4">
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 bg-primary rounded-2xl flex items-center justify-center">
@@ -45,7 +45,7 @@ export default function Navbar({ onWaitlistClick, onDevClick }) {
         </div>
       </div>
       {mobileOpen && (
-        <div className="md:hidden border-t border-border bg-background px-6 py-6 flex flex-col gap-4 text-sm">
+        <div className="md:hidden border-t border-border bg-background dark:bg-foundation px-6 py-6 flex flex-col gap-4 text-sm">
           {navLinks.map(link => (
             <button key={link.id} onClick={() => scrollTo(link.id)} className="text-left py-2 text-text-secondary hover:text-text-primary">{link.label}</button>
           ))}
