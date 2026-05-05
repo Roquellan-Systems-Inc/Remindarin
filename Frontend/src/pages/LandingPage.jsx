@@ -27,12 +27,8 @@ export default function LandingPage() {
       }
     };
 
-    // Set initial state
     handleChange();
-
-    // Listen for system theme changes
     mediaQuery.addEventListener('change', handleChange);
-
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
@@ -43,7 +39,8 @@ export default function LandingPage() {
         onDevClick={() => setDevOpen(true)} 
       />
 
-      <section className="pt-20 min-h-[100dvh] flex items-center bg-gradient-to-b from-background to-foundation/30">
+      {/* Hero Section */}
+      <section className="pt-20 min-h-[100dvh] flex items-center bg-gradient-to-b from-background to-foundation/30 dark:from-foundation dark:to-background/30">
         <div className="max-w-5xl mx-auto px-6 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-3xl bg-foundation border border-border mb-6">
             <div className="w-2 h-2 bg-accent-positive rounded-full animate-pulse" />
@@ -70,10 +67,11 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Problem Section */}
       <section id="problem" className="max-w-5xl mx-auto px-6 py-24">
         <div className="text-center mb-16">
           <div className="text-accent-positive text-sm font-semibold tracking-[1px] mb-3">THE PROBLEM</div>
-          <h2 className="text-5xl font-semibold tracking-tight">Tired of reminders that never come at the right time?</h2>
+          <h2 className="text-5xl font-semibold tracking-tight text-text-primary">Tired of reminders that never come at the right time?</h2>
         </div>
         <div className="grid md:grid-cols-3 gap-6">
           {[
@@ -102,6 +100,7 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* How it Works */}
       <section id="how" className="bg-foundation py-24">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-16">
@@ -136,10 +135,11 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Key Benefits */}
       <section id="benefits" className="max-w-5xl mx-auto px-6 py-24">
         <div className="text-center mb-16">
           <div className="text-accent-positive text-sm font-semibold tracking-[1px] mb-3">WHY PEOPLE LOVE IT</div>
-          <h2 className="text-5xl font-semibold tracking-tight">Why people love Remindarin</h2>
+          <h2 className="text-5xl font-semibold tracking-tight text-text-primary">Why people love Remindarin</h2>
         </div>
         <div className="grid md:grid-cols-2 gap-5">
           {[
@@ -168,6 +168,7 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Testimonials */}
       <section id="testimonials" className="bg-foundation py-24">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-16">
@@ -202,6 +203,7 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Final CTA */}
       <section className="max-w-3xl mx-auto px-6 py-24 text-center">
         <div className="text-accent-positive text-sm font-semibold tracking-[1px] mb-4">LAST CHANCE TO GET EARLY ACCESS</div>
         <h2 className="text-6xl font-semibold tracking-tighter text-text-primary mb-6">Ready to never forget the right things again?</h2>
@@ -210,10 +212,11 @@ export default function LandingPage() {
         <p className="mt-6 text-xs text-text-secondary">We’ll notify you as soon as Remindarin is available. No spam, ever.</p>
       </section>
 
+      {/* FAQ */}
       <section className="max-w-3xl mx-auto px-6 pb-24">
         <div className="text-center mb-12">
           <div className="text-accent-positive text-sm font-semibold tracking-[1px] mb-3">QUESTIONS?</div>
-          <h3 className="text-4xl font-semibold tracking-tight">Frequently asked questions</h3>
+          <h3 className="text-4xl font-semibold tracking-tight text-text-primary">Frequently asked questions</h3>
         </div>
         <div className="space-y-3">
           {[
@@ -235,6 +238,7 @@ export default function LandingPage() {
 
       <Footer />
 
+      {/* Waitlist BottomSheet */}
       <BottomSheet 
         isOpen={waitlistOpen} 
         onClose={() => { setWaitlistOpen(false); setSubmitted(false); setEmail(''); setName(''); }} 
@@ -274,6 +278,7 @@ export default function LandingPage() {
         )}
       </BottomSheet>
 
+      {/* Developer Dashboard BottomSheet */}
       <BottomSheet 
         isOpen={devOpen} 
         onClose={() => setDevOpen(false)} 
