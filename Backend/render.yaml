@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: remindarin-backend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: "cd backend && pip install -r requirements.txt"
+    startCommand: "cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: NVIDIA_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: remindarin-db
+          property: connectionString
+      - key: APP_ENV
+        value: production
+
+databases:
+  - name: remindarin-db
+    plan: free
+    region: oregon
+    databaseName: remindarin
+    user: remindarin_user
