@@ -7,6 +7,7 @@ import UpcomingReminders from '../components/dashboard/UpcomingReminders';
 import DailyStats from '../components/dashboard/DailyStats';
 import SmartSuggestions from '../components/dashboard/SmartSuggestions';
 import QuickActions from '../components/dashboard/QuickActions';
+import BottomNav from '../components/layout/BottomNav';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -275,6 +276,7 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+    <BottomNav activeTab="home" onCaptureClick={handleQuickCapture} />
     </div>
   );
 }
