@@ -38,7 +38,7 @@ export default function LandingPage() {
         onDevClick={() => setDevOpen(true)} 
       />
 
-      <section className="pt-20 min-h-[100dvh] flex items-center bg-gradient-to-b from-background to-foundation/30 dark:from-foundation dark:to-foundation/80">
+      <section className="pt-20 min-h-[100dvh] flex items-center bg-gradient-to-b from-background to-background/90 dark:from-foundation dark:to-foundation/80">
         <div className="max-w-5xl mx-auto px-6 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-3xl bg-foundation border border-border mb-6">
             <div className="w-2 h-2 bg-accent-positive rounded-full animate-pulse" />
