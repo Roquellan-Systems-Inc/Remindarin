@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send, Bot, X } from 'lucide-react';
+import { ArrowLeft, Send, Bot } from 'lucide-react';
 
 export default function AIChat() {
   const navigate = useNavigate();
@@ -9,6 +9,7 @@ export default function AIChat() {
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [hasUserMessaged, setHasUserMessaged] = useState(false);
 
   const sendMessage = () => {
     if (!input.trim()) return;
@@ -17,6 +18,7 @@ export default function AIChat() {
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setInput('');
     setIsTyping(true);
+    setHasUserMessaged(true);
 
     setTimeout(() => {
       let reply = "Got it. What else can I help you with?";
@@ -42,34 +44,27 @@ export default function AIChat() {
   return (
     <div className="min-h-screen bg-background text-text-primary flex flex-col">
       <div className="fixed top-0 left-0 right-0 z-50 bg-foundation/95 backdrop-blur-lg border-b border-border">
-        <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => navigate('/dashboard')} 
-              className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors p-2 -ml-2"
-            >
-              <ArrowLeft size={20} />
-              <span className="font-medium text-sm">Back to Dashboard</span>
-            </button>
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-primary rounded-2xl flex items-center justify-center">
-                <Bot size={18} className="text-text-inverse" />
-              </div>
-              <div>
-                <div className="font-semibold text-xl tracking-tight">Remindarin AI</div>
-                <div className="text-xs text-accent-positive -mt-0.5">Always here for you</div>
-              </div>
-            </div>
-          </div>
-          <button onClick={() => navigate('/dashboard')} className="text-text-secondary hover:text-text-primary">
-            <X size={22} />
+        <div className="max-w-3xl mx-auto px-6 h-16 flex items-center">
+          <button 
+            onClick={() => navigate('/dashboard')} 
+            className="p-2 text-text-secondary hover:text-text-primary transition-colors"
+          >
+            <ArrowLeft size={22} />
           </button>
         </div>
       </div>
 
       <div className="flex-1 max-w-3xl mx-auto w-full px-6 pt-20 pb-24 overflow-y-auto">
         <div className="space-y-6 py-8">
-          {messages.map((msg, index) => (
+          {!hasUserMessaged && messages.length === 1 && (
+            <div className="flex justify-start">
+              <div className="max-w-[85%] px-6 py-4 rounded-3xl text-[15px] leading-relaxed bg-foundation border border-border rounded-bl-none">
+                {messages[0].text}
+              </div>
+            </div>
+          )}
+
+          {messages.slice(hasUserMessaged ? 0 : 1).map((msg, index) => (
             <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[85%] px-6 py-4 rounded-3xl text-[15px] leading-relaxed ${msg.role === 'user' 
                 ? 'bg-primary text-text-inverse rounded-br-none' 
