@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Bot, X, Send } from 'lucide-react';
+import { ArrowLeft, X } from 'lucide-react';
 import TodaysOverview from '../components/dashboard/TodaysOverview';
 import QuickCaptureButton from '../components/dashboard/QuickCaptureButton';
 import UpcomingReminders from '../components/dashboard/UpcomingReminders';
@@ -17,17 +17,14 @@ export default function Dashboard() {
     { id: 4, text: "Call mom", time: "19:30", context: "Personal", completed: false }
   ]);
   const [energyLevel, setEnergyLevel] = useState('medium');
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [chatMessages, setChatMessages] = useState([
-    { role: 'ai', text: "Hi! I'm your Remindarin AI. How can I help you crush today?" }
-  ]);
-  const [chatInput, setChatInput] = useState('');
+  const [aiEnabled, setAiEnabled] = useState(true);
   const [showCaptureModal, setShowCaptureModal] = useState(false);
-  const [newReminder, setNewReminder] = useState({ text: '', time: '', context: 'Work' });
+  const [newReminder, setNewReminder] = useState({ text: '', time: '09:00', context: 'Work' });
   const [showFocusModal, setShowFocusModal] = useState(false);
   const [focusTime, setFocusTime] = useState(25 * 60);
   const [isFocusRunning, setIsFocusRunning] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   const completedToday = reminders.filter(r => r.completed).length;
   const streak = 12;
@@ -78,31 +75,13 @@ export default function Dashboard() {
     setShowFocusModal(true);
   };
 
-  const toggleChat = () => setIsChatOpen(!isChatOpen);
-
-  const sendChatMessage = () => {
-    if (!chatInput.trim()) return;
-    
-    const userMsg = chatInput.trim();
-    setChatMessages(prev => [...prev, { role: 'user', text: userMsg }]);
-    setChatInput('');
-
-    setTimeout(() => {
-      let reply = "Got it. Anything else on your mind?";
-      const lower = userMsg.toLowerCase();
-      
-      if (lower.includes('remind') || lower.includes('add')) {
-        reply = "Done. I've added it to your list. Need a specific time?";
-      } else if (lower.includes('streak')) {
-        reply = `You're on a ${streak}-day streak! Incredible consistency.`;
-      } else if (lower.includes('suggest') || lower.includes('what')) {
-        reply = "Based on your energy and schedule, tackle the Team sync first.";
-      } else if (lower.includes('focus')) {
-        reply = "Focus Mode activated. 25 minutes of deep work starting now.";
-      }
-      
-      setChatMessages(prev => [...prev, { role: 'ai', text: reply }]);
-    }, 650);
+  const toggleAI = () => {
+    const newState = !aiEnabled;
+    setAiEnabled(newState);
+    if (newState) {
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 2000);
+    }
   };
 
   const handleSuggestionAdd = (suggestion) => {
@@ -154,13 +133,17 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <button
-            onClick={toggleChat}
-            className="w-11 h-11 rounded-2xl bg-primary flex items-center justify-center text-text-inverse hover:bg-[#2B3A67] active:scale-95 transition-all shadow-sm"
-            aria-label="Toggle AI Assistant"
-          >
-            <Bot size={20} />
-          </button>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 bg-background border border-border rounded-2xl px-4 py-1.5">
+              <span className="text-sm font-medium text-text-secondary">AI Mode</span>
+              <button
+                onClick={toggleAI}
+                className={`relative w-11 h-6 rounded-full transition-colors ${aiEnabled ? 'bg-accent-positive' : 'bg-border'}`}
+              >
+                <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${aiEnabled ? 'translate-x-5' : ''}`} />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -197,63 +180,6 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-
-      {isChatOpen && (
-        <div className="fixed inset-0 z-[60] flex justify-end">
-          <div 
-            className="absolute inset-0 bg-black/40" 
-            onClick={toggleChat}
-          />
-          <div className="relative w-full max-w-[380px] h-full bg-foundation border-l border-border flex flex-col shadow-2xl">
-            <div className="px-6 py-5 border-b border-border flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-2xl bg-primary flex items-center justify-center">
-                  <Bot size={18} className="text-text-inverse" />
-                </div>
-                <div>
-                  <div className="font-semibold">Remindarin AI</div>
-                  <div className="text-xs text-accent-positive">Online • Always learning</div>
-                </div>
-              </div>
-              <button onClick={toggleChat} className="p-2 text-text-secondary hover:text-text-primary">
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 text-sm">
-              {chatMessages.map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] px-5 py-3.5 rounded-3xl ${msg.role === 'user' 
-                    ? 'bg-primary text-text-inverse rounded-br-none' 
-                    : 'bg-background border border-border rounded-bl-none'}`}>
-                    {msg.text}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="p-4 border-t border-border bg-background">
-              <div className="flex gap-3">
-                <input
-                  type="text"
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && sendChatMessage()}
-                  placeholder="Ask about reminders, energy, or plans..."
-                  className="flex-1 bg-foundation border border-border rounded-2xl px-5 py-3 text-sm focus:outline-none focus:border-primary"
-                />
-                <button 
-                  onClick={sendChatMessage}
-                  disabled={!chatInput.trim()}
-                  className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-text-inverse disabled:opacity-40 active:scale-95 transition-all"
-                >
-                  <Send size={18} />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showCaptureModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-6">
@@ -362,6 +288,12 @@ export default function Dashboard() {
               Got it, thanks
             </button>
           </div>
+        </div>
+      )}
+
+      {showToast && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-foundation border border-accent-positive text-accent-positive px-6 py-3 rounded-2xl text-sm font-medium shadow-xl z-[90]">
+          AI Mode enabled — suggestions now smarter
         </div>
       )}
     </div>

@@ -1,0 +1,119 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Send, Bot, X } from 'lucide-react';
+
+export default function AIChat() {
+  const navigate = useNavigate();
+  const [messages, setMessages] = useState([
+    { role: 'ai', text: "Hi Ivan! I'm your personal Remindarin AI. How can I help you today?" }
+  ]);
+  const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+
+  const sendMessage = () => {
+    if (!input.trim()) return;
+
+    const userMsg = input.trim();
+    setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
+    setInput('');
+    setIsTyping(true);
+
+    setTimeout(() => {
+      let reply = "Got it. What else can I help you with?";
+      const lower = userMsg.toLowerCase();
+
+      if (lower.includes('remind') || lower.includes('add')) {
+        reply = "I've noted that. Would you like me to create a smart reminder for it?";
+      } else if (lower.includes('streak')) {
+        reply = "You're on a strong 12-day streak! Keep going — you're doing amazing.";
+      } else if (lower.includes('energy') || lower.includes('tired')) {
+        reply = "Based on your current energy level, I recommend a short break before your next task.";
+      } else if (lower.includes('plan') || lower.includes('day')) {
+        reply = "I've prepared a smart daily plan for you. Want me to add it to your reminders?";
+      } else if (lower.includes('focus')) {
+        reply = "Focus Mode is ready. Shall I start a 25-minute deep work session?";
+      }
+
+      setMessages(prev => [...prev, { role: 'ai', text: reply }]);
+      setIsTyping(false);
+    }, 650);
+  };
+
+  return (
+    <div className="min-h-screen bg-background text-text-primary flex flex-col">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-foundation/95 backdrop-blur-lg border-b border-border">
+        <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => navigate('/dashboard')} 
+              className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors p-2 -ml-2"
+            >
+              <ArrowLeft size={20} />
+              <span className="font-medium text-sm">Back to Dashboard</span>
+            </button>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-primary rounded-2xl flex items-center justify-center">
+                <Bot size={18} className="text-text-inverse" />
+              </div>
+              <div>
+                <div className="font-semibold text-xl tracking-tight">Remindarin AI</div>
+                <div className="text-xs text-accent-positive -mt-0.5">Always here for you</div>
+              </div>
+            </div>
+          </div>
+          <button onClick={() => navigate('/dashboard')} className="text-text-secondary hover:text-text-primary">
+            <X size={22} />
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 max-w-3xl mx-auto w-full px-6 pt-20 pb-24 overflow-y-auto">
+        <div className="space-y-6 py-8">
+          {messages.map((msg, index) => (
+            <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[85%] px-6 py-4 rounded-3xl text-[15px] leading-relaxed ${msg.role === 'user' 
+                ? 'bg-primary text-text-inverse rounded-br-none' 
+                : 'bg-foundation border border-border rounded-bl-none'}`}>
+                {msg.text}
+              </div>
+            </div>
+          ))}
+          
+          {isTyping && (
+            <div className="flex justify-start">
+              <div className="bg-foundation border border-border px-6 py-4 rounded-3xl rounded-bl-none flex items-center gap-2">
+                <div className="flex gap-1">
+                  <div className="w-1.5 h-1.5 bg-text-secondary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-1.5 h-1.5 bg-text-secondary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-1.5 h-1.5 bg-text-secondary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
+                <span className="text-xs text-text-secondary ml-1">AI is thinking...</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="fixed bottom-0 left-0 right-0 bg-foundation border-t border-border p-4">
+        <div className="max-w-3xl mx-auto flex gap-3">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+            placeholder="Ask anything about your day, reminders, or energy..."
+            className="flex-1 bg-background border border-border rounded-2xl px-6 py-4 text-[15px] focus:outline-none focus:border-primary"
+          />
+          <button 
+            onClick={sendMessage}
+            disabled={!input.trim()}
+            className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center text-text-inverse disabled:opacity-40 active:scale-95 transition-all"
+          >
+            <Send size={20} />
+          </button>
+        </div>
+        <div className="text-center text-xs text-text-secondary mt-3">Your conversations are private and encrypted</div>
+      </div>
+    </div>
+  );
+}
