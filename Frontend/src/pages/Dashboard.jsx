@@ -159,9 +159,9 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <button
+    <button
         onClick={() => navigate('/ai')}
-        className="fixed bottom-8 right-8 z-50 w-14 h-14 bg-primary rounded-2xl flex items-center justify-center text-text-inverse shadow-lg hover:bg-[#2B3A67] active:scale-95 transition-all"
+        className="fixed bottom-20 right-8 z-[60] w-14 h-14 bg-primary rounded-2xl flex items-center justify-center text-text-inverse shadow-lg hover:bg-[#2B3A67] active:scale-95 transition-all"
         aria-label="Open AI Assistant"
       >
         <Bot size={24} />
