@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --color-primary: #1F2A44;
   --color-foundation: #0F172A;
@@ -10,17 +14,15 @@
   --color-text-inverse: #FFFFFF;
 }
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-.dark {
-  --color-background: #0C0F12;
-  --color-foundation: #0F172A;
-  --color-text-primary: #F8FAFC;
-  --color-text-secondary: #94A3B8;
-  --color-border: #2A3441;
-  --color-primary: #2B3A67;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #0C0F12;
+    --color-foundation: #0F172A;
+    --color-text-primary: #F8FAFC;
+    --color-text-secondary: #94A3B8;
+    --color-border: #2A3441;
+    --color-primary: #2B3A67;
+  }
 }
 
 html { scroll-behavior: smooth; }
