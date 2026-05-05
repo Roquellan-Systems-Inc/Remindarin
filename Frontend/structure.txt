@@ -1,0 +1,35 @@
+Frontend/
+├── .gitignore
+├── eslint.config.js
+├── index.html
+├── package.json
+├── postcss.config.js
+├── tailwind.config.js
+├── vercel.json
+├── vite.config.js
+└── src/
+    ├── App.jsx
+    ├── App.css
+    ├── main.jsx
+    ├── index.css
+    ├── components/
+    │   ├── layout/
+    │   │   ├── Footer.jsx
+    │   │   └── Navbar.jsx
+    │   └── ui/
+    │       ├── Button.jsx
+    │       ├── Input.jsx
+    │       └── BottomSheet.jsx
+    ├── context/
+    │   └── AuthContext.jsx
+    ├── pages/
+    │   ├── LandingPage.jsx
+    │   ├── 
+    │   ├── 
+    │   ├── 
+    │   ├── 
+    │   ├── 
+    │   └── 
+    │   
+    └── services/
+        └── authService.js
