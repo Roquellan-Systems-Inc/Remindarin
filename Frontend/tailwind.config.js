@@ -1,20 +1,24 @@
+/** @type {import('tailwindcss').Config} */
 export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        primary: '#1F2A44',
-        foundation: '#0F172A',
-        'accent-positive': '#16A34A',
-        warning: '#F59E0B',
-        background: '#F8FAFC',
-        border: '#E2E8F0',
-        'text-primary': '#020617',
-        'text-secondary': '#64748B',
-        'text-inverse': '#FFFFFF',
+        background: 'var(--color-background)',
+        foundation: 'var(--color-foundation)',
+        primary: 'var(--color-primary)',
+        'accent-positive': 'var(--color-accent-positive)',
+        warning: 'var(--color-warning)',
+        border: 'var(--color-border)',
+        text: {
+          primary: 'var(--color-text-primary)',
+          secondary: 'var(--color-text-secondary)',
+          inverse: 'var(--color-text-inverse)',
+        },
       },
     },
   },
