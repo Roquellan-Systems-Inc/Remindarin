@@ -10,6 +10,10 @@
   --color-text-inverse: #FFFFFF;
 }
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 .dark {
   --color-background: #0C0F12;
   --color-foundation: #0F172A;
