@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, LogIn } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE = "https://accounts.remindarin.orbmiv.com";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [step, setStep] = useState('email'); // email or code
@@ -38,7 +40,7 @@ export default function Login() {
     }
   };
 
-  const handleVerify = async (e) => {
+    const handleVerify = async (e) => {
     e.preventDefault();
     if (!code.trim()) return;
 
@@ -53,12 +55,13 @@ export default function Login() {
       const data = await res.json();
 
       if (res.ok) {
-        localStorage.setItem('remindarin_user', JSON.stringify({ 
+        login({ 
           id: data.user?.id, 
           email: data.user?.email 
-        }));
+        });
+
         setMessage({ type: 'success', text: 'Login successful!' });
-        setTimeout(() => navigate('/dashboard'), 800);
+        setTimeout(() => navigate('/dashboard'), 600);
       } else {
         setMessage({ type: 'error', text: data.error || 'Invalid code' });
       }
