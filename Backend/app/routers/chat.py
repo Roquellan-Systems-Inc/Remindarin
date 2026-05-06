@@ -11,12 +11,12 @@ async def chat_with_ai(request: Request):
     auth = await require_auth(request)
     if isinstance(auth, JSONResponse):
         return auth
-    try:
+        try:
         body = await request.json()
     except Exception:
         return JSONResponse({"error": "Invalid JSON body"}, status_code=400)
 
-     user_message = body.get("message", "").strip()
+    user_message = body.get("message", "").strip()
     timezone = body.get("timezone")
     if not user_message:
         return JSONResponse({"error": "Message is required"}, status_code=400)
