@@ -4,6 +4,7 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Route
 from .routers.chat import chat_with_ai
 from .routers.reminders import parse_reminder, list_reminders, create_reminder, complete_reminder, get_dashboard
+from .routers.auth import auth_router
 from .database import Base, engine
 
 async def root(request):
@@ -28,6 +29,8 @@ app = Starlette(debug=True, routes=[
     Route("/api/v1/reminders", create_reminder, methods=["POST"]),
     Route("/api/v1/reminders/{reminder_id}/complete", complete_reminder, methods=["PATCH"]),
 ])
+
+app.mount("/api/v1/auth", auth_router)
 
 app.add_middleware(
     CORSMiddleware,
