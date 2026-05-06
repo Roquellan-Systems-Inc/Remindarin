@@ -5,6 +5,8 @@ import Dashboard from './pages/Dashboard';
 import AIChat from './pages/AIChat';
 import QuickCapture from './pages/QuickCapture';
 import Reminders from './pages/Reminders';
+import Insights from './pages/Insights';
+import Profile from './pages/Profile';
 import Signup from './pages/Auth/Signup';
 import Login from './pages/Auth/Login';
 
@@ -29,7 +31,7 @@ function App() {
               </ProtectedRoute>
             } 
           />
-           <Route 
+                   <Route 
             path="/ai" 
             element={
               <ProtectedRoute>
