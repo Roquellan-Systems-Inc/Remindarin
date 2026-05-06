@@ -1,12 +1,12 @@
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 import json
-from nvidia_ai import call_nvidia_ai
+from .nvidia_ai import call_nvidia_ai
 
 async def parse_reminder(request: Request):
     try:
         body = await request.json()
-    except:
+    except Exception:
         return JSONResponse({"success": False, "error": "Invalid JSON body"}, status_code=400)
 
     system_prompt = """Extract structured reminder data from the user's message.
