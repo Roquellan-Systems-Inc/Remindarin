@@ -56,7 +56,7 @@ export default function Dashboard() {
     }
   };
 
-  const completeReminder = async (id) => {
+    const completeReminder = async (id) => {
     try {
       const res = await fetch(`${API_BASE}/api/v1/reminders/${id}/complete`, {
         method: 'PATCH',
