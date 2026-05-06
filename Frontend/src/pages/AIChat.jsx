@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, Bot } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://remindarin.onrender.com';
 
@@ -95,8 +97,14 @@ export default function AIChat() {
             <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[85%] px-6 py-4 rounded-3xl text-[15px] leading-relaxed ${msg.role === 'user' 
                 ? 'bg-primary text-text-inverse rounded-br-none' 
-                : 'bg-foundation border border-border rounded-bl-none'}`}>
-                {msg.text}
+                : 'bg-foundation border border-border rounded-bl-none prose prose-invert max-w-none'}`}>
+                {msg.role === 'ai' ? (
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {msg.text}
+                  </ReactMarkdown>
+                ) : (
+                  msg.text
+                )}
               </div>
             </div>
           ))}
