@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import chat, reminders
 from app.database import engine, Base
+import os
 
 app = FastAPI(title="Remindarin AI Backend", version="1.0.0")
 
@@ -18,8 +19,15 @@ app.include_router(reminders.router)
 
 @app.on_event("startup")
 def startup():
-    Base.metadata.create_all(bind=engine)
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("✅ Database tables created successfully")
+    except Exception as e:
+        print(f"⚠️ Database connection warning: {e}")
 
 @app.get("/")
 async def root():
-    return {"message": "Remindarin AI Backend is running"}
+    return {
+        "message": "Remindarin AI Backend is running",
+        "status": "healthy"
+    }
