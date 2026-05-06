@@ -6,7 +6,7 @@ import httpx
 import os
 import json
 
-NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
+NVIDIA_API_URL = "https://api.nvidia.com/v1/chat/completions"
 
 AVAILABLE_MODELS = {
     "nemotron": "nvidia/llama-3.1-nemotron-70b-instruct",
@@ -43,9 +43,10 @@ async def call_nvidia_ai(prompt: str, system_prompt: str = None, model: str = "n
     }
 
     try:
-        async with httpx.AsyncClient(timeout=45.0) as client:
+        async with httpx.AsyncClient(timeout=60.0) as client:
             response = await client.post(NVIDIA_API_URL, json=payload, headers=headers)
-            response.raise_for_status()
+            if response.status_code != 200:
+                return f"NVIDIA API Error {response.status_code}: {response.text}"
             return response.json()["choices"][0]["message"]["content"]
     except Exception as e:
         error_msg = str(e)
@@ -63,7 +64,7 @@ async def chat_with_ai(request):
     body = await request.json()
     reply = await call_nvidia_ai(
         body.get("message", ""),
-        system_prompt="You are Remindarin AI, a helpful assistant for reminders and productivity.",
+        system_prompt="You are Remindarin AI, a helpful assistant for reminders and productivity. Be concise, friendly, and context-aware.",
         model=body.get("model", "nemotron")
     )
     return JSONResponse({"reply": reply})
