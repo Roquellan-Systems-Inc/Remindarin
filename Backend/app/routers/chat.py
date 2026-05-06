@@ -1,6 +1,6 @@
 from starlette.requests import Request
 from starlette.responses import JSONResponse
-from nvidia_ai import call_nvidia_ai
+from .nvidia_ai import call_nvidia_ai
 
 async def chat_with_ai(request: Request):
     try:
