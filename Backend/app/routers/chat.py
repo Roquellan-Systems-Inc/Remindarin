@@ -2,6 +2,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from ..services.nvidia_ai import call_nvidia_ai
 from ..database import SessionLocal, ChatMessage, Reminder
+from .auth import require_auth
 import re
 import json
 
