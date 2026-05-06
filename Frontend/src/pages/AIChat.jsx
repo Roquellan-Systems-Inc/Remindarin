@@ -131,8 +131,61 @@ export default function AIChat() {
               <div className={`max-w-[85%] px-6 py-4 rounded-3xl text-[15px] leading-relaxed ${msg.role === 'user' 
                 ? 'bg-primary text-text-inverse rounded-br-none' 
                 : 'bg-foundation border border-border rounded-bl-none prose prose-invert max-w-none'}`}>
-                {msg.role === 'ai' ? (
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+               {msg.role === 'ai' ? (
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      table: ({ node, ...props }) => (
+                        <div className="overflow-x-auto my-6 rounded-3xl border border-border bg-foundation shadow-sm">
+                          <table 
+                            className="w-full text-sm border-collapse" 
+                            {...props} 
+                          />
+                        </div>
+                      ),
+                      thead: ({ node, ...props }) => (
+                        <thead 
+                          className="bg-primary/5 border-b border-border" 
+                          {...props} 
+                        />
+                      ),
+                      th: ({ node, ...props }) => (
+                        <th 
+                          className="px-6 py-4 text-left font-semibold text-text-primary border-r border-border last:border-r-0" 
+                          {...props} 
+                        />
+                      ),
+                      tbody: ({ node, ...props }) => (
+                        <tbody 
+                          className="divide-y divide-border" 
+                          {...props} 
+                        />
+                      ),
+                      tr: ({ node, ...props }) => (
+                        <tr 
+                          className="hover:bg-background/70 transition-colors" 
+                          {...props} 
+                        />
+                      ),
+                      td: ({ node, ...props }) => (
+                        <td 
+                          className="px-6 py-4 text-text-primary border-r border-border last:border-r-0 align-top" 
+                          {...props} 
+                        />
+                      ),
+                      p: ({ node, ...props }) => <p className="mb-4 leading-relaxed" {...props} />,
+                      ul: ({ node, ...props }) => <ul className="list-disc pl-6 mb-4 space-y-1" {...props} />,
+                      ol: ({ node, ...props }) => <ol className="list-decimal pl-6 mb-4 space-y-1" {...props} />,
+                      li: ({ node, ...props }) => <li className="leading-relaxed" {...props} />,
+                      strong: ({ node, ...props }) => <strong className="font-semibold text-text-primary" {...props} />,
+                      code: ({ node, inline, ...props }) => 
+                        inline ? (
+                          <code className="bg-background px-1.5 py-px rounded text-xs font-mono text-accent-positive" {...props} />
+                        ) : (
+                          <code className="block bg-foundation p-4 rounded-3xl overflow-x-auto text-sm font-mono border border-border" {...props} />
+                        )
+                    }}
+                  >
                     {msg.text}
                   </ReactMarkdown>
                 ) : (
