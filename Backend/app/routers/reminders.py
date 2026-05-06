@@ -1,3 +1,4 @@
+from .auth import require_auth
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 import json
@@ -23,6 +24,9 @@ If any value is missing, use null. Priority can be low, medium, or high."""
         return JSONResponse({"success": False, "error": "Failed to parse reminder", "raw": result})
 
 async def list_reminders(request):
+    auth = await require_auth(request)
+    if isinstance(auth, JSONResponse):
+        return auth
     db = SessionLocal()
     try:
         reminders = db.query(Reminder).filter(Reminder.completed == False).order_by(Reminder.time.asc()).all()
@@ -41,6 +45,9 @@ async def list_reminders(request):
         db.close()
 
 async def create_reminder(request):
+    auth = await require_auth(request)
+    if isinstance(auth, JSONResponse):
+        return auth
     try:
         body = await request.json()
     except Exception:
@@ -68,6 +75,9 @@ async def create_reminder(request):
         db.close()
 
 async def complete_reminder(request):
+    auth = await require_auth(request)
+    if isinstance(auth, JSONResponse):
+        return auth:
     reminder_id = int(request.path_params.get("reminder_id"))
     db = SessionLocal()
     try:
@@ -81,6 +91,9 @@ async def complete_reminder(request):
         db.close()
 
 async def get_dashboard(request):
+    auth = await require_auth(request)
+    if isinstance(auth, JSONResponse):
+        return auth
     db = SessionLocal()
     try:
         reminders = db.query(Reminder).filter(Reminder.completed == False).order_by(Reminder.time.asc()).all()

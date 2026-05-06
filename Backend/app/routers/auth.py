@@ -91,10 +91,17 @@ async def verify_code(request: Request):
         db.query(VerificationCode).filter(VerificationCode.email == email).delete()
         db.commit()
 
+        import base64
+        token = base64.b64encode(f"{user.id}:{user.email}".encode()).decode()
+
+        import base64
+        token = base64.b64encode(f"{user.id}:{user.email}".encode()).decode()
+
         return JSONResponse({
             "success": True,
-            "message": "Email verified successfully",
-            "user": {"id": user.id, "email": user.email}
+            "message": "Google login successful",
+            "user": {"id": user.id, "email": user.email},
+            "token": token
         })
     finally:
         db.close()
@@ -164,6 +171,21 @@ async def google_callback(request: Request):
     except Exception as e:
         return JSONResponse({"error": "Google login failed"}, status_code=400)
 
+async def require_auth(request: Request):
+    """Simple auth middleware function for protected routes"""
+    auth = request.headers.get("Authorization")
+    if not auth or not auth.startswith("Bearer "):
+        return JSONResponse({"error": "Unauthorized - Missing or invalid token"}, status_code=401)
+    
+    token = auth.split("Bearer ")[1]
+    try:
+        import base64
+        decoded = base64.b64decode(token).decode()
+        user_id, email = decoded.split(":", 1)
+        return {"user_id": int(user_id), "email": email}
+    except Exception:
+        return JSONResponse({"error": "Unauthorized - Invalid token"}, status_code=401)
+        
 # Define routes
 auth_router = Router([
     Route("/signup", signup, methods=["POST"]),
