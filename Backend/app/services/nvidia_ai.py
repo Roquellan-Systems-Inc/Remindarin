@@ -1,12 +1,13 @@
 import httpx
-from app.database import settings
+import os
 
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
 MODEL = "meta/llama-3.1-70b-instruct"
+NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
 
 async def call_nvidia_ai(prompt: str, system_prompt: str = None) -> str:
     headers = {
-        "Authorization": f"Bearer {settings.NVIDIA_API_KEY}",
+        "Authorization": f"Bearer {NVIDIA_API_KEY}",
         "Content-Type": "application/json"
     }
     
