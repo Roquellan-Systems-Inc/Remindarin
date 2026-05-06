@@ -51,7 +51,12 @@ export default function Login() {
 
       const data = await res.json();
 
-      if (res.ok) {
+            if (res.ok) {
+        const authContext = require('../../context/AuthContext');
+        localStorage.setItem('remindarin_user', JSON.stringify({ 
+          id: data.user?.id, 
+          email: data.user?.email 
+        }));
         setMessage({ type: 'success', text: 'Login successful!' });
         setTimeout(() => navigate('/dashboard'), 800);
       } else {
