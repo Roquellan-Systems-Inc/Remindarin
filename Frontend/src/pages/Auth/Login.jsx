@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, LogIn } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 const API_BASE = "https://accounts.remindarin.orbmiv.com";
 
@@ -40,7 +40,9 @@ export default function Login() {
     }
   };
 
-    const handleVerify = async (e) => {
+      const { login } = useAuth();
+
+  const handleVerify = async (e) => {
     e.preventDefault();
     if (!code.trim()) return;
 
@@ -59,7 +61,6 @@ export default function Login() {
           id: data.user?.id, 
           email: data.user?.email 
         });
-
         setMessage({ type: 'success', text: 'Login successful!' });
         setTimeout(() => navigate('/dashboard'), 600);
       } else {
