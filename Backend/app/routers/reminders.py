@@ -31,6 +31,7 @@ async def list_reminders(request):
                 "id": r.id,
                 "text": r.text,
                 "time": r.time,
+                "date": r.date,
                 "context": r.context,
                 "completed": r.completed
             } for r in reminders

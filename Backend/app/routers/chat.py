@@ -1,73 +1,56 @@
 from starlette.requests import Request
 from starlette.responses import JSONResponse
-
 from ..services.nvidia_ai import call_nvidia_ai
 from ..database import SessionLocal, ChatMessage, Reminder
-
 import re
 import json
 
-
 async def chat_with_ai(request: Request):
-    db = SessionLocal()
-
     try:
-        # 1. Parse request body
-        try:
-            body = await request.json()
-        except Exception:
-            return JSONResponse(
-                {"error": "Invalid JSON body"},
-                status_code=400
-            )
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"error": "Invalid JSON body"}, status_code=400)
 
-        user_message = body.get("message", "").strip()
-        if not user_message:
-            return JSONResponse(
-                {"error": "Message is required"},
-                status_code=400
-            )
+    user_message = body.get("message", "").strip()
+    if not user_message:
+        return JSONResponse({"error": "Message is required"}, status_code=400)
 
-        # 2. Save user message
+    db = SessionLocal()
+    try:
+        # Save user message
         user_msg = ChatMessage(role="user", content=user_message)
         db.add(user_msg)
         db.commit()
+        db.refresh(user_msg)
 
-        history = (
-            db.query(ChatMessage)
-            .order_by(ChatMessage.created_at.asc())
-            .limit(20)
-            .all()
-        )
+        # Load conversation history
+        history = db.query(ChatMessage)\
+            .order_by(ChatMessage.created_at.asc())\
+            .limit(20).all()
 
-        # 4. Load active reminders
-        reminders = (
-            db.query(Reminder)
-            .filter(Reminder.completed == False)
-            .order_by(Reminder.time.asc())
-            .limit(8)
-            .all()
-        )
+        # Load active reminders for context
+        reminders = db.query(Reminder)\
+            .filter(Reminder.completed == False)\
+            .order_by(Reminder.time.asc())\
+            .limit(8).all()
 
         reminder_context = "\n".join([
             f"• {r.date or 'today'} {r.time or ''} | {r.context} | {r.text}"
             for r in reminders
         ]) or "No active reminders."
 
-        # 5. System prompt
-        system_prompt = f"""
-You are Remindarin AI — a modern, intelligent productivity assistant.
+        # Enhanced system prompt
+        system_prompt = f"""You are Remindarin AI — a modern, intelligent productivity assistant.
 
 Current active reminders:
 {reminder_context}
 
-You have full memory of the conversation.
+You have full memory of the conversation. You can create new reminders instantly.
 
 When the user asks to add, create, schedule, remind, or set a reminder, you MUST create it.
 
-Respond in clean professional Markdown.
-
-If you create a reminder, ALWAYS end your response with this JSON block:
+Respond conversationally in clean professional Markdown.
+If you create a reminder, end your response with this exact JSON block:
 
 ```json
 {{
@@ -77,46 +60,32 @@ If you create a reminder, ALWAYS end your response with this JSON block:
   "date": "YYYY-MM-DD or null for today",
   "context": "Work / Personal / Health / Other"
 }}
-"""
-
-        reply = await call_nvidia_ai(user_message, system_prompt)
-
-        json_match = re.search(
-            r"```json\s*(\{.*?\})\s*```",
-            reply,
-            re.DOTALL | re.IGNORECASE
-        )
-
-        if json_match:
-            try:
-                action = json.loads(json_match.group(1))
-
-                if action.get("action") == "create_reminder":
-                    reminder = Reminder(
-                        text=action.get("text"),
-                        time=action.get("time"),
-                        date=action.get("date"),
-                        context=action.get("context", "Work"),
-                        completed=False
-                    )
-
-                    db.add(reminder)
-                    db.commit()
-                    db.refresh(reminder)
-
-                    reply += (
-                        f"\n\n✅ Reminder created! "
-                        f"ID: {reminder.id} — "
-                        f"{reminder.date or 'today'} {reminder.time or ''}"
-                    )
-
-            except Exception:
-                pass
-        assistant_msg = ChatMessage(role="assistant", content=reply)
-        db.add(assistant_msg)
-        db.commit()
-
-        return JSONResponse({"reply": reply})
-
-    finally:
-        db.close()
+Be helpful, concise, friendly, and proactive."""
+Call AI
+reply = await call_nvidia_ai(user_message, system_prompt)
+Auto-detect and create reminder if AI returned JSON
+json_match = re.search(r'json\s*(\{.*?\})\s*', reply, re.DOTALL | re.IGNORECASE)
+if json_match:
+try:
+action_data = json.loads(json_match.group(1))
+if action_data.get("action") == "create_reminder":
+reminder = Reminder(
+text=action_data.get("text", ""),
+time=action_data.get("time"),
+date=action_data.get("date"),
+context=action_data.get("context", "Work")
+)
+db.add(reminder)
+db.commit()
+db.refresh(reminder)
+reply += f"\n\n✅ Reminder successfully created!\nID: {reminder.id} | {reminder.date or 'Today'} {reminder.time or ''} | {reminder.context}"
+except Exception:
+pass
+Save AI response
+assistant_msg = ChatMessage(role="assistant", content=reply)
+db.add(assistant_msg)
+db.commit()
+return JSONResponse({"reply": reply})
+finally:
+db.close()
+text
