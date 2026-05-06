@@ -15,12 +15,9 @@ async def root(request):
 
 Base.metadata.create_all(bind=engine)
 
-with engine.connect() as conn:
-    try:
-        conn.execute("ALTER TABLE reminders ADD COLUMN IF NOT EXISTS date VARCHAR")
-        conn.commit()
-    except Exception:
-        pass
+from .database import Reminder
+Base.metadata.drop_all(bind=engine, tables=[Reminder.__table__])
+Base.metadata.create_all(bind=engine)
 
 app = Starlette(debug=True, routes=[
     Route("/", root, methods=["GET"]),
