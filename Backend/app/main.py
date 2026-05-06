@@ -2,8 +2,8 @@ from starlette.applications import Starlette
 from starlette.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Route
-from .chat import chat_with_ai
-from .reminders import parse_reminder
+from .routers.chat import chat_with_ai
+from .routers.reminders import parse_reminder
 
 async def root(request):
     return JSONResponse({

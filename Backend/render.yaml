@@ -5,7 +5,7 @@ services:
     region: singapore
     plan: free
     buildCommand: "cd Backend && pip install --upgrade pip && pip install -r requirements.txt --no-cache-dir"
-    startCommand: "cd Backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    startCommand: "cd Backend && PYTHONPATH=. uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: NVIDIA_API_KEY
         sync: false
