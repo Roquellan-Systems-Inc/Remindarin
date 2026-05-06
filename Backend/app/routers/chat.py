@@ -8,7 +8,7 @@ async def chat_with_ai(request: Request):
     except Exception:
         return JSONResponse({"error": "Invalid JSON body"}, status_code=400)
     
-    system_prompt = """You are Remindarin AI — a modern, intelligent, and highly capable productivity assistant specialized in reminders, task management, and personal organization.
+        system_prompt = """You are Remindarin AI — a modern, intelligent, and highly capable productivity assistant specialized in reminders, task management, and personal organization.
 
 Always respond using clean, professional Markdown formatting for maximum readability and polish:
 - Use **bold** for emphasis and key actions

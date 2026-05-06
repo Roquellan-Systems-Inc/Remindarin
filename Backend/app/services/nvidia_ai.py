@@ -17,8 +17,13 @@ async def call_nvidia_ai(
     model: str = "nemotron"
 ) -> str:
     api_key = os.getenv("NVIDIA_API_KEY")
+    
     if not api_key:
-        return "AI service is currently unavailable. Please configure your NVIDIA API key."
+        return (
+            "NVIDIA_API_KEY is not set in Render environment variables.\n\n"
+            "Fix: Go to your Render Dashboard → remindarin-backend → Environment → "
+            "Add NVIDIA_API_KEY with your actual key from https://build.nvidia.com/"
+        )
 
     model_name = AVAILABLE_MODELS.get(model.lower(), AVAILABLE_MODELS["nemotron"])
 
@@ -43,8 +48,18 @@ async def call_nvidia_ai(
     try:
         async with httpx.AsyncClient(timeout=60.0) as client:
             response = await client.post(NVIDIA_API_URL, json=payload, headers=headers)
-            response.raise_for_status()
-            return response.json()["choices"][0]["message"]["content"]
+            
+            if response.status_code != 200:
+                error_detail = response.text[:400] if response.text else "No error body"
+                return f"NVIDIA API Error {response.status_code}: {error_detail}"
+            
+            data = response.json()
+            return data["choices"][0]["message"]["content"]
+
+    except httpx.HTTPStatusError as e:
+        return f"NVIDIA API HTTP Error {e.response.status_code}: {str(e)[:300]}"
+    except httpx.TimeoutException:
+        return "NVIDIA API request timed out. Please try again."
     except Exception as e:
-        print(f"NVIDIA AI Error: {e}")
-        return "Sorry, I'm having trouble connecting to the AI right now. Please try again later."
+        error_type = type(e).__name__
+        return f"AI connection failed ({error_type}): {str(e)[:300]}"
