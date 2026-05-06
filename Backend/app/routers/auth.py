@@ -1,5 +1,5 @@
 from starlette.routing import Router, Route
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, RedirectResponse
 from starlette.requests import Request
 from ..database import SessionLocal, User, VerificationCode
 from datetime import datetime, timedelta
@@ -92,7 +92,6 @@ async def verify_code(request: Request):
         db.close()
 
 async def google_auth(request: Request):
-    # Redirect to Google OAuth
     google_client_id = os.getenv("GOOGLE_CLIENT_ID")
     callback_url = os.getenv("GOOGLE_CALLBACK_URL", "https://remindarin.onrender.com/api/v1/auth/google/callback")
     
@@ -114,8 +113,8 @@ async def google_callback(request: Request):
     if not code:
         return JSONResponse({"error": "No code provided"}, status_code=400)
 
-    # Exchange code for tokens
     try:
+        # Exchange code for tokens
         data = {
             "client_id": os.getenv("GOOGLE_CLIENT_ID"),
             "client_secret": os.getenv("GOOGLE_CLIENT_SECRET"),
@@ -151,10 +150,11 @@ async def google_callback(request: Request):
         finally:
             db.close()
 
-        from starlette.responses import RedirectResponse
+        # Redirect to frontend dashboard
         return RedirectResponse(url="/dashboard", status_code=302)
+
     except Exception as e:
-        return JSONResponse({"error": "Google login failed"}, status_code=400))
+        return JSONResponse({"error": "Google login failed"}, status_code=400)
 
 # Define routes
 auth_router = Router([
