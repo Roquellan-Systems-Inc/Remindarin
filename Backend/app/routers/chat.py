@@ -60,32 +60,34 @@ If you create a reminder, end your response with this exact JSON block:
   "date": "YYYY-MM-DD or null for today",
   "context": "Work / Personal / Health / Other"
 }}
+
 Be helpful, concise, friendly, and proactive."""
-Call AI
-reply = await call_nvidia_ai(user_message, system_prompt)
-Auto-detect and create reminder if AI returned JSON
-json_match = re.search(r'json\s*(\{.*?\})\s*', reply, re.DOTALL | re.IGNORECASE)
-if json_match:
-try:
-action_data = json.loads(json_match.group(1))
-if action_data.get("action") == "create_reminder":
-reminder = Reminder(
-text=action_data.get("text", ""),
-time=action_data.get("time"),
-date=action_data.get("date"),
-context=action_data.get("context", "Work")
-)
-db.add(reminder)
-db.commit()
-db.refresh(reminder)
-reply += f"\n\n✅ Reminder successfully created!\nID: {reminder.id} | {reminder.date or 'Today'} {reminder.time or ''} | {reminder.context}"
-except Exception:
-pass
-Save AI response
-assistant_msg = ChatMessage(role="assistant", content=reply)
-db.add(assistant_msg)
-db.commit()
-return JSONResponse({"reply": reply})
-finally:
-db.close()
-text
+
+        reply = await call_nvidia_ai(user_message, system_prompt)
+
+        json_match = re.search(r'```json\s*(\{.*?\})\s*```', reply, re.DOTALL | re.IGNORECASE)
+        if json_match:
+            try:
+                action_data = json.loads(json_match.group(1))
+                if action_data.get("action") == "create_reminder":
+                    reminder = Reminder(
+                        text=action_data.get("text", ""),
+                        time=action_data.get("time"),
+                        date=action_data.get("date"),
+                        context=action_data.get("context", "Work")
+                    )
+                    db.add(reminder)
+                    db.commit()
+                    db.refresh(reminder)
+                    reply += f"\n\n✅ **Reminder successfully created!**\n**ID:** {reminder.id} | {reminder.date or 'Today'} {reminder.time or ''} | {reminder.context}"
+            except Exception:
+                pass
+
+        assistant_msg = ChatMessage(role="assistant", content=reply)
+        db.add(assistant_msg)
+        db.commit()
+
+        return JSONResponse({"reply": reply})
+
+    finally:
+        db.close()
