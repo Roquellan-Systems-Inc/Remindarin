@@ -4,8 +4,14 @@ import httpx
 import os
 import json
 
-# Disable OpenAPI to avoid pydantic ConfigError on Python 3.14
-app = FastAPI(title="Remindarin AI Backend", version="1.0.0", openapi_url=None)
+# Disable OpenAPI schema generation to fix pydantic ConfigError on Render
+app = FastAPI(
+    title="Remindarin AI Backend",
+    version="1.0.0",
+    openapi_url=None,
+    docs_url=None,
+    redoc_url=None
+)
 
 app.add_middleware(
     CORSMiddleware,
