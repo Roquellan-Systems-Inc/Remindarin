@@ -20,7 +20,7 @@ MODEL = "nvidia/llama-3.1-nemotron-70b-instruct"
 async def call_nvidia_ai(prompt: str, system_prompt: str = None):
     api_key = os.getenv("NVIDIA_API_KEY")
     if not api_key:
-        return "AI service is currently unavailable. Please set NVIDIA_API_KEY."
+        return "AI service is currently unavailable. Please set your NVIDIA_API_KEY in Render environment variables."
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -72,4 +72,4 @@ If any value is missing, use null. Priority can be low, medium, or high."""
         data = json.loads(result)
         return {"success": True, "reminder": data}
     except:
-        return {"success": False, "error": "Failed to parse", "raw": result}
+        return {"success": False, "error": "Failed to parse reminder", "raw": result}
