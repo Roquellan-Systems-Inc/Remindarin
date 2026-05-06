@@ -208,14 +208,18 @@ export default function Dashboard() {
             <QuickCaptureButton onClick={handleQuickCapture} />
           </div>
 
-      <div className="lg:col-span-7">
-            <UpcomingReminders reminders={reminders} onComplete={completeReminder} />
+       <div className="lg:col-span-7">
+            <UpcomingReminders 
+              reminders={reminders} 
+              onComplete={completeReminder} 
+              isLoading={isLoading}
+            />
           </div>
           <div className="lg:col-span-5">
             <DailyStats completedToday={completedToday} streak={streak} />
           </div>
 
-          <div className="lg:col-span-7">
+     <div className="lg:col-span-7">
             <SmartSuggestions onAdd={handleSuggestionAdd} />
           </div>
           <div className="lg:col-span-5">

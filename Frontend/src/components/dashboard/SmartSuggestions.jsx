@@ -1,16 +1,37 @@
 import React from 'react';
 import { Lightbulb, Plus } from 'lucide-react';
 
-export default function SmartSuggestions({ onAdd }) {
-  const hour = new Date().getHours();
-  
-  const suggestions = hour < 10 
-    ? ["Review top 3 priorities", "Hydrate & 5-min stretch", "Plan your first deep work block"]
-    : hour < 15 
-    ? ["Block 45 min for focused work", "Quick stand-up with team", "Log today's wins"]
-    : ["Prepare tomorrow's top 3", "Review incomplete items", "Wind-down routine"];
+import { useState, useEffect } from 'react';
+import LoadingSpinner from '../ui/LoadingSpinner';
 
-  return (
+export default function SmartSuggestions({ onAdd }) {
+  const [suggestions, setSuggestions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const API_BASE = "https://accounts.remindarin.orbmiv.com";
+
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/suggestions`);
+        const data = await res.json();
+        setSuggestions(data.suggestions || []);
+      } catch (err) {
+        console.error("Failed to fetch smart suggestions", err);
+        // Fallback
+        setSuggestions([
+          "Review top 3 priorities",
+          "Block time for deep work",
+          "Prepare tomorrow's plan"
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSuggestions();
+  }, []);
+
+    return (
     <div className="bg-foundation rounded-3xl p-6 border border-border">
       <div className="flex items-center gap-3 mb-5">
         <div className="w-9 h-9 rounded-2xl bg-warning/10 flex items-center justify-center">
@@ -20,7 +41,12 @@ export default function SmartSuggestions({ onAdd }) {
       </div>
 
       <div className="space-y-3">
-        {suggestions.map((suggestion, index) => (
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <LoadingSpinner size={28} />
+          </div>
+        ) : (
+          suggestions.map((suggestion, index) => (
           <button
             key={index}
             onClick={() => onAdd(suggestion)}

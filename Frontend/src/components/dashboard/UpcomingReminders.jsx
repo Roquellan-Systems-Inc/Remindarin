@@ -1,7 +1,16 @@
 import React from 'react';
 import { Check, Clock } from 'lucide-react';
+import LoadingSpinner from '../ui/LoadingSpinner';
 
-export default function UpcomingReminders({ reminders, onComplete }) {
+export default function UpcomingReminders({ reminders, onComplete, isLoading = false }) {
+  if (isLoading) {
+    return (
+      <div className="bg-foundation rounded-3xl border border-border p-8 flex items-center justify-center h-64">
+        <LoadingSpinner size={32} />
+      </div>
+    );
+  }
+
   const upcoming = reminders
     .filter(r => !r.completed)
     .sort((a, b) => a.time.localeCompare(b.time))
