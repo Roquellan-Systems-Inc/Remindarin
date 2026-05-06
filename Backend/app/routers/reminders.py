@@ -108,10 +108,47 @@ async def get_dashboard(request):
             } for r in reminders
         ]
         completed_today = db.query(Reminder).filter(Reminder.completed == True).count()
-        weather = {"temp": 29, "condition": "Clear skies"}
+
+        import httpx
+        from datetime import datetime
+        now = datetime.now()
+
+        try:
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                weather_resp = await client.get(
+                    "https://api.open-meteo.com/v1/forecast",
+                    params={
+                        "latitude": 9.7392,
+                        "longitude": 118.7353,
+                        "current_weather": "true",
+                        "timezone": "Asia/Manila"
+                    }
+                )
+                weather_data = weather_resp.json().get("current_weather", {})
+                temp = round(weather_data.get("temperature", 28))
+                wcode = weather_data.get("weathercode", 0)
+                condition_map = {
+                    0: "Clear skies", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
+                    45: "Fog", 48: "Depositing rime fog", 51: "Light drizzle", 53: "Moderate drizzle",
+                    55: "Dense drizzle", 61: "Light rain", 63: "Moderate rain", 65: "Heavy rain",
+                    71: "Light snow", 73: "Moderate snow", 75: "Heavy snow", 95: "Thunderstorm"
+                }
+                condition = condition_map.get(wcode, "Cloudy")
+                weather = {"temp": temp, "condition": condition}
+        except:
+            weather = {"temp": 28, "condition": "Cloudy"}
+
+        hour = now.hour
+        if completed_today >= 5 or (hour >= 6 and hour <= 10):
+            energy_level = "high"
+        elif completed_today >= 2 or (hour >= 11 and hour <= 15):
+            energy_level = "medium"
+        else:
+            energy_level = "low"
+
         return JSONResponse({
             "weather": weather,
-            "energy_level": "medium",
+            "energy_level": energy_level,
             "reminders": reminder_list,
             "completed_today": completed_today,
             "streak": 12
