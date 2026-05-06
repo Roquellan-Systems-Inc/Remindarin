@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, Bot } from 'lucide-react';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL ;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://remindarin.onrender.com';
 
 export default function AIChat() {
   const navigate = useNavigate();
@@ -10,7 +10,6 @@ export default function AIChat() {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
-  const [error, setError] = useState(null);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -20,7 +19,6 @@ export default function AIChat() {
     setInput('');
     setShowWelcome(false);
     setIsTyping(true);
-    setError(null);
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/chat`, {
@@ -29,16 +27,15 @@ export default function AIChat() {
         body: JSON.stringify({ message: userMsg }),
       });
 
-      if (!response.ok) throw new Error('Network error');
+      if (!response.ok) throw new Error('Failed to connect');
 
       const data = await response.json();
-      setMessages(prev => [...prev, { role: 'ai', text: data.reply }]);
+      setMessages(prev => [...prev, { role: 'ai', text: data.reply || "I received your message." }]);
     } catch (err) {
       console.error(err);
-      setError("Sorry, I couldn't connect to the AI right now.");
       setMessages(prev => [...prev, { 
         role: 'ai', 
-        text: "Sorry, I'm having trouble connecting right now. Please try again." 
+        text: "Sorry, I'm having trouble connecting to the AI right now. Please check if the backend is running and NVIDIA_API_KEY is set in Render." 
       }]);
     } finally {
       setIsTyping(false);
