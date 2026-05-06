@@ -5,6 +5,7 @@ from starlette.routing import Route
 from .routers.chat import chat_with_ai
 from .routers.reminders import parse_reminder, list_reminders, create_reminder, complete_reminder, get_dashboard
 from .routers.auth import auth_router, require_auth
+from .routers.suggestions import get_smart_suggestions
 from .database import Base, engine
 
 async def root(request):
@@ -27,6 +28,7 @@ app = Starlette(debug=True, routes=[
     Route("/api/v1/reminders", list_reminders, methods=["GET"]),
     Route("/api/v1/reminders", create_reminder, methods=["POST"]),
     Route("/api/v1/reminders/{reminder_id}/complete", complete_reminder, methods=["PATCH"]),
+    Route("/api/v1/suggestions", get_smart_suggestions, methods=["GET"]),
 ])
 
 app.mount("/api/v1/auth", auth_router)
