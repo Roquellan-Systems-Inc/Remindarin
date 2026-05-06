@@ -1,6 +1,7 @@
-from sqlalchemy import create_engine
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 import os
+from datetime import datetime
 
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 
@@ -21,3 +22,12 @@ def get_db():
         yield db
     finally:
         db.close()
+        
+        class Reminder(Base):
+    __tablename__ = 'reminders'
+    id = Column(Integer, primary_key=True, index=True)
+    text = Column(String, nullable=False)
+    time = Column(String, nullable=True)
+    context = Column(String, default='Work')
+    completed = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)

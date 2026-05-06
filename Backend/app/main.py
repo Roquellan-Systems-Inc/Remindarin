@@ -3,7 +3,8 @@ from starlette.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Route
 from .routers.chat import chat_with_ai
-from .routers.reminders import parse_reminder
+from .routers.reminders import parse_reminder, list_reminders, create_reminder, complete_reminder, get_dashboard
+from .database import Base, engine
 
 async def root(request):
     return JSONResponse({
@@ -12,10 +13,16 @@ async def root(request):
         "region": "singapore"
     })
 
+Base.metadata.create_all(bind=engine)
+
 app = Starlette(debug=True, routes=[
     Route("/", root, methods=["GET"]),
     Route("/api/v1/chat", chat_with_ai, methods=["POST"]),
     Route("/api/v1/reminders/parse", parse_reminder, methods=["POST"]),
+    Route("/api/v1/dashboard", get_dashboard, methods=["GET"]),
+    Route("/api/v1/reminders", list_reminders, methods=["GET"]),
+    Route("/api/v1/reminders", create_reminder, methods=["POST"]),
+    Route("/api/v1/reminders/{reminder_id}/complete", complete_reminder, methods=["PATCH"]),
 ])
 
 app.add_middleware(
