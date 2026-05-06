@@ -153,8 +153,7 @@ async def google_callback(request: Request):
 
         return JSONResponse({
             "success": True,
-            "message": "Google login successful",
-            "user": {"id": user.id, "email": user.email}
+            "redirect": "/dashboard"
         })
     except Exception as e:
         return JSONResponse({"error": "Google login failed"}, status_code=400)

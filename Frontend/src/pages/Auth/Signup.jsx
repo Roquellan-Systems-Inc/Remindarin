@@ -39,7 +39,7 @@ export default function Signup() {
     }
   };
 
-  const handleGoogleSignup = async () => {
+    const handleGoogleSignup = async () => {
     try {
       const res = await fetch(`${API_BASE}/api/v1/auth/google`);
       const data = await res.json();

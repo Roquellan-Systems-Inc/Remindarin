@@ -68,7 +68,7 @@ export default function Login() {
     }
   };
 
-  const handleGoogleLogin = async () => {
+    const handleGoogleLogin = async () => {
     try {
       const res = await fetch(`${API_BASE}/api/v1/auth/google`);
       const data = await res.json();
