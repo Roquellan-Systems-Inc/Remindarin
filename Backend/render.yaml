@@ -2,9 +2,9 @@ services:
   - type: web
     name: remindarin-backend
     env: python
-    region: oregon
+    region: singapore
     plan: free
-    buildCommand: "cd backend && pip install --upgrade pip && PIP_NO_CACHE_DIR=1 pip install -r requirements.txt"
+    buildCommand: "cd backend && pip install --upgrade pip && pip install -r requirements.txt --no-cache-dir"
     startCommand: "cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: NVIDIA_API_KEY
@@ -15,12 +15,10 @@ services:
           property: connectionString
       - key: APP_ENV
         value: production
-      - key: PYTHON_VERSION
-        value: 3.11.9
 
 databases:
   - name: remindarin-db
     plan: free
-    region: oregon
+    region: singapore
     databaseName: remindarin
     user: remindarin_user
