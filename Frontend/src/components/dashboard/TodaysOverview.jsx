@@ -1,7 +1,7 @@
 import React from 'react';
 import { Sun, Calendar } from 'lucide-react';
 
-export default function TodaysOverview({ energyLevel, setEnergyLevel }) {
+export default function TodaysOverview({ energyLevel, setEnergyLevel, weather }) {
   const today = new Date().toLocaleDateString('en-US', { 
     weekday: 'long', 
     month: 'long', 
@@ -26,11 +26,11 @@ export default function TodaysOverview({ energyLevel, setEnergyLevel }) {
           <div className="text-2xl font-semibold text-text-primary mt-1 tracking-tight">{today}</div>
         </div>
         
-        <div className="flex items-center gap-3 bg-background rounded-2xl px-5 py-3 border border-border">
+      <div className="flex items-center gap-3 bg-background rounded-2xl px-5 py-3 border border-border">
           <Sun size={22} className="text-warning" />
           <div>
             <div className="text-xs text-text-secondary">WEATHER</div>
-            <div className="font-semibold text-text-primary">29°C • Clear skies</div>
+            <div className="font-semibold text-text-primary">{weather.temp}°C • {weather.condition}</div>
           </div>
         </div>
       </div>

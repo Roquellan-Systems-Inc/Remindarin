@@ -11,32 +11,63 @@ import BottomNav from '../components/layout/BottomNav';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [reminders, setReminders] = useState([
-    { id: 1, text: "Team sync meeting", time: "09:00", context: "Work", completed: false },
-    { id: 2, text: "Submit Q2 report draft", time: "11:30", context: "Work", completed: false },
-    { id: 3, text: "30-min walk", time: "17:00", context: "Health", completed: false },
-    { id: 4, text: "Call mom", time: "19:30", context: "Personal", completed: false }
-  ]);
+  const API_BASE = "https://remindarin.onrender.com";
+  const [reminders, setReminders] = useState([]);
+  const [completedToday, setCompletedToday] = useState(0);
+  const [streak, setStreak] = useState(12);
   const [energyLevel, setEnergyLevel] = useState('medium');
-  const [showCaptureModal, setShowCaptureModal] = useState(false);
+  const [weather, setWeather] = useState({ temp: 29, condition: "Clear skies" });
+  const [showCaptureSheet, setShowCaptureSheet] = useState(false);
   const [newReminder, setNewReminder] = useState({ text: '', time: '09:00', context: 'Work' });
   const [showFocusModal, setShowFocusModal] = useState(false);
   const [focusTime, setFocusTime] = useState(25 * 60);
   const [isFocusRunning, setIsFocusRunning] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const completedToday = reminders.filter(r => r.completed).length;
-  const streak = 12;
+  const fetchDashboard = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/dashboard`);
+      const data = await res.json();
+      setReminders(data.reminders || []);
+      setCompletedToday(data.completed_today || 0);
+      setStreak(data.streak || 12);
+      setEnergyLevel(data.energy_level || 'medium');
+      setWeather(data.weather || { temp: 29, condition: "Clear skies" });
+    } catch (err) {
+      console.error("Failed to fetch dashboard", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const addReminder = (text, time = '09:00', context = 'Work') => {
-    const newItem = {
-      id: Date.now(),
-      text,
-      time,
-      context,
-      completed: false
-    };
-    setReminders(prev => [...prev, newItem]);
+  const addReminder = async (text, time = '09:00', context = 'Work') => {
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/reminders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, time, context })
+      });
+      if (res.ok) {
+        await fetchDashboard();
+      }
+    } catch (err) {
+      console.error("Failed to add reminder", err);
+    }
+  };
+
+  const completeReminder = async (id) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/reminders/${id}/complete`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (res.ok) {
+        await fetchDashboard();
+      }
+    } catch (err) {
+      console.error("Failed to complete reminder", err);
+    }
   };
 
   const completeReminder = (id) => {
@@ -45,13 +76,13 @@ export default function Dashboard() {
 
   const handleQuickCapture = () => {
     setNewReminder({ text: '', time: '09:00', context: 'Work' });
-    setShowCaptureModal(true);
+    setShowCaptureSheet(true);
   };
 
-  const submitNewReminder = () => {
+  const submitNewReminder = async () => {
     if (!newReminder.text.trim()) return;
-    addReminder(newReminder.text.trim(), newReminder.time, newReminder.context);
-    setShowCaptureModal(false);
+    await addReminder(newReminder.text.trim(), newReminder.time, newReminder.context);
+    setShowCaptureSheet(false);
     setNewReminder({ text: '', time: '09:00', context: 'Work' });
   };
 
@@ -93,6 +124,10 @@ export default function Dashboard() {
     }
     return () => clearInterval(interval);
   }, [isFocusRunning, focusTime]);
+  
+    React.useEffect(() => {
+    fetchDashboard();
+  }, []);
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);
@@ -132,14 +167,18 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-7">
-            <TodaysOverview energyLevel={energyLevel} setEnergyLevel={setEnergyLevel} />
+       <div className="lg:col-span-7">
+            <TodaysOverview 
+              energyLevel={energyLevel} 
+              setEnergyLevel={setEnergyLevel}
+              weather={weather}
+            />
           </div>
           <div className="lg:col-span-5">
             <QuickCaptureButton onClick={handleQuickCapture} />
           </div>
 
-          <div className="lg:col-span-7">
+      <div className="lg:col-span-7">
             <UpcomingReminders reminders={reminders} onComplete={completeReminder} />
           </div>
           <div className="lg:col-span-5">
@@ -167,17 +206,26 @@ export default function Dashboard() {
         <Bot size={24} />
       </button>
 
-      {showCaptureModal && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-6">
-          <div className="bg-foundation rounded-3xl w-full max-w-md border border-border overflow-hidden">
-            <div className="px-6 py-5 border-b border-border flex items-center justify-between">
-              <div className="font-semibold text-xl">New Reminder</div>
-              <button onClick={() => setShowCaptureModal(false)} className="text-text-secondary hover:text-text-primary">
-                <X size={22} />
-              </button>
+  {showCaptureSheet && (
+        <div 
+          className="fixed inset-0 z-[70] bg-black/60 flex items-end"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowCaptureSheet(false);
+          }}
+        >
+          <div 
+            className="bg-foundation w-full max-h-[85vh] rounded-t-3xl border-t border-border overflow-hidden flex flex-col transition-transform duration-300"
+            style={{ transform: showCaptureSheet ? 'translateY(0)' : 'translateY(100%)' }}
+          >
+            <div className="flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing">
+              <div className="w-12 h-1.5 bg-text-secondary/30 rounded-full"></div>
+            </div>
+
+            <div className="px-6 py-5 border-b border-border">
+              <div className="font-semibold text-xl text-center">New Reminder</div>
             </div>
             
-            <div className="p-6 space-y-5">
+            <div className="p-6 space-y-5 flex-1 overflow-auto">
               <div>
                 <div className="text-sm font-medium mb-2 text-text-secondary">WHAT NEEDS TO BE DONE?</div>
                 <input
@@ -218,7 +266,7 @@ export default function Dashboard() {
 
             <div className="px-6 py-5 border-t border-border flex gap-3">
               <button 
-                onClick={() => setShowCaptureModal(false)}
+                onClick={() => setShowCaptureSheet(false)}
                 className="flex-1 h-12 rounded-2xl border border-border font-medium hover:bg-background transition-colors"
               >
                 Cancel
