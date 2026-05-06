@@ -2,14 +2,17 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, Bot } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL ;
+
 export default function AIChat() {
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
+  const [error, setError] = useState(null);
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!input.trim()) return;
 
     const userMsg = input.trim();
@@ -17,26 +20,29 @@ export default function AIChat() {
     setInput('');
     setShowWelcome(false);
     setIsTyping(true);
+    setError(null);
 
-    setTimeout(() => {
-      let reply = "Got it. What else can I help you with?";
-      const lower = userMsg.toLowerCase();
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMsg }),
+      });
 
-      if (lower.includes('remind') || lower.includes('add')) {
-        reply = "I've noted that. Would you like me to create a smart reminder for it?";
-      } else if (lower.includes('streak')) {
-        reply = "You're on a strong 12-day streak! Keep going — you're doing amazing.";
-      } else if (lower.includes('energy') || lower.includes('tired')) {
-        reply = "Based on your current energy level, I recommend a short break before your next task.";
-      } else if (lower.includes('plan') || lower.includes('day')) {
-        reply = "I've prepared a smart daily plan for you. Want me to add it to your reminders?";
-      } else if (lower.includes('focus')) {
-        reply = "Focus Mode is ready. Shall I start a 25-minute deep work session?";
-      }
+      if (!response.ok) throw new Error('Network error');
 
-      setMessages(prev => [...prev, { role: 'ai', text: reply }]);
+      const data = await response.json();
+      setMessages(prev => [...prev, { role: 'ai', text: data.reply }]);
+    } catch (err) {
+      console.error(err);
+      setError("Sorry, I couldn't connect to the AI right now.");
+      setMessages(prev => [...prev, { 
+        role: 'ai', 
+        text: "Sorry, I'm having trouble connecting right now. Please try again." 
+      }]);
+    } finally {
       setIsTyping(false);
-    }, 650);
+    }
   };
 
   return (
@@ -125,7 +131,7 @@ export default function AIChat() {
           />
           <button 
             onClick={sendMessage}
-            disabled={!input.trim()}
+            disabled={!input.trim() || isTyping}
             className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center text-text-inverse disabled:opacity-40 active:scale-95 transition-all"
           >
             <Send size={20} />
