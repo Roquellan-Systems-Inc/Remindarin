@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, Bot } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://accounts.remindarin.orbmiv.com';
 
 export default function AIChat() {
   const navigate = useNavigate();
+  const { user } = useAuth();                    // ← Added auth
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -15,6 +17,13 @@ export default function AIChat() {
   
   const abortControllerRef = useRef(null);
   const messagesEndRef = useRef(null);
+
+  // Generate the same Bearer token the backend expects
+  const getToken = () => {
+    if (!user?.id || !user?.email) return null;
+    const tokenStr = `${user.id}:${user.email}`;
+    return btoa(tokenStr);   // base64 exactly like backend
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -37,6 +46,12 @@ export default function AIChat() {
   const sendMessage = async () => {
     if (!input.trim() || isTyping) return;
 
+    const token = getToken();
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
     const userMsg = input.trim();
 
     if (abortControllerRef.current) {
@@ -54,10 +69,18 @@ export default function AIChat() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`     // ← Auth header added
+        },
         body: JSON.stringify({ message: userMsg }),
         signal: controller.signal,
       });
+
+      if (response.status === 401) {
+        navigate('/login');
+        return;
+      }
 
       if (!response.ok) throw new Error('Failed to connect');
 
