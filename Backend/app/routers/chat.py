@@ -3,7 +3,7 @@ from starlette.responses import JSONResponse
 from ..services.nvidia_ai import call_nvidia_ai
 from ..database import SessionLocal, ChatMessage, Reminder
 from .auth import require_auth
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 import json
 
@@ -44,8 +44,8 @@ async def chat_with_ai(request: Request):
             for r in reminders
         ]) or "No active reminders."
 
-                # === REAL-TIME DATE & TIME INJECTION (for accurate reminders) ===
         now = datetime.now()
+        tomorrow = (now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)).strftime("%Y-%m-%d")
         current_date = now.strftime("%Y-%m-%d")
         current_time = now.strftime("%H:%M")
         current_weekday = now.strftime("%A")
@@ -62,8 +62,8 @@ You have full memory of the conversation. You can create new reminders instantly
 
 When the user asks to add, create, schedule, remind, or set a reminder, ALWAYS create it using the real current date/time above. 
 Understand relative dates correctly:
-- "tomorrow" = { (now.replace(hour=0, minute=0, second=0, microsecond=0) + datetime.timedelta(days=1)).strftime("%Y-%m-%d") }
-- "next Monday" = calculate correctly from today
+- "tomorrow" = {tomorrow}
+- "next week" = calculate from today
 - "this afternoon" = today at appropriate time
 
 Respond conversationally in clean professional Markdown.
