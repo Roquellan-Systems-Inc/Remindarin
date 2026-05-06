@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, Bot } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -12,21 +12,41 @@ export default function AIChat() {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
+  const abortControllerRef = useRef(null);
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping]);
 
   const sendMessage = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || isTyping) return;
 
     const userMsg = input.trim();
+
+    // Cancel any previous request instantly
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setInput('');
     setShowWelcome(false);
     setIsTyping(true);
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMsg }),
+        signal: controller.signal,
       });
 
       if (!response.ok) throw new Error('Failed to connect');
@@ -34,13 +54,18 @@ export default function AIChat() {
       const data = await response.json();
       setMessages(prev => [...prev, { role: 'ai', text: data.reply || "I received your message." }]);
     } catch (err) {
+      if (err.name === 'AbortError') {
+        // User cancelled - do nothing
+        return;
+      }
       console.error(err);
       setMessages(prev => [...prev, { 
         role: 'ai', 
-        text: "Sorry, I'm having trouble connecting to the AI right now. Please check if the backend is running and NVIDIA_API_KEY is set in Render." 
+        text: "Sorry, I'm having trouble connecting to the AI right now. Please try again." 
       }]);
     } finally {
       setIsTyping(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -121,6 +146,7 @@ export default function AIChat() {
               </div>
             </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
       </div>
 
