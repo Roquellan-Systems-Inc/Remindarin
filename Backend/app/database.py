@@ -1,19 +1,11 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
-from pydantic_settings import BaseSettings
 import os
 
-class Settings(BaseSettings):
-    DATABASE_URL: str
-    NVIDIA_API_KEY: str
-    APP_ENV: str = "development"
+DATABASE_URL = os.getenv("DATABASE_URL")
+NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
 
-    class Config:
-        env_file = ".env"
-
-settings = Settings()
-
-engine = create_async_engine(settings.DATABASE_URL, echo=settings.APP_ENV == "development")
+engine = create_async_engine(DATABASE_URL, echo=False)
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 Base = declarative_base()
 
