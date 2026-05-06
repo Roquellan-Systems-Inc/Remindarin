@@ -18,7 +18,12 @@ export default function Dashboard() {
   const [energyLevel, setEnergyLevel] = useState('medium');
   const [weather, setWeather] = useState({ temp: 29, condition: "Clear skies" });
   const [showCaptureSheet, setShowCaptureSheet] = useState(false);
-  const [newReminder, setNewReminder] = useState({ text: '', time: '09:00', context: 'Work' });
+  const [newReminder, setNewReminder] = useState({ 
+    text: '', 
+    time: '09:00', 
+    date: new Date().toISOString().split('T')[0],
+    context: 'Work' 
+  });
   const [showFocusModal, setShowFocusModal] = useState(false);
   const [focusTime, setFocusTime] = useState(25 * 60);
   const [isFocusRunning, setIsFocusRunning] = useState(false);
@@ -43,12 +48,12 @@ export default function Dashboard() {
     }
   };
 
-  const addReminder = async (text, time = '09:00', context = 'Work') => {
+    const addReminder = async (text, time = '09:00', date = null, context = 'Work') => {
     try {
       const res = await fetch(`${API_BASE}/api/v1/reminders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, time, context })
+        body: JSON.stringify({ text, time, date, context })
       });
       if (res.ok) {
         await fetchDashboard();
@@ -73,20 +78,30 @@ export default function Dashboard() {
   };
 
   const handleQuickCapture = () => {
-    setNewReminder({ text: '', time: '09:00', context: 'Work' });
+    setNewReminder({ 
+      text: '', 
+      time: '09:00', 
+      date: new Date().toISOString().split('T')[0], 
+      context: 'Work' 
+    });
     setShowCaptureSheet(true);
   };
 
-    const submitNewReminder = async () => {
+        const submitNewReminder = async () => {
     if (!newReminder.text.trim()) return;
 
     setIsSubmitting(true);
     setToast(null);
 
     try {
-      await addReminder(newReminder.text.trim(), newReminder.time, newReminder.context);
+      await addReminder(newReminder.text.trim(), newReminder.time, newReminder.date, newReminder.context);
       setShowCaptureSheet(false);
-      setNewReminder({ text: '', time: '09:00', context: 'Work' });
+      setNewReminder({ 
+        text: '', 
+        time: '09:00', 
+        date: new Date().toISOString().split('T')[0], 
+        context: 'Work' 
+      });
       
       setToast({ message: "✅ Reminder added successfully!", type: "success" });
       setTimeout(() => setToast(null), 3000);
@@ -99,14 +114,14 @@ export default function Dashboard() {
     }
   };
 
-    const handlePlanDay = async () => {
+        const handlePlanDay = async () => {
     const samples = [
-      { text: "Morning deep work block", time: "08:00", context: "Work" },
-      { text: "Lunch & recharge", time: "12:30", context: "Health" },
-      { text: "End-of-day review", time: "17:30", context: "Work" }
+      { text: "Morning deep work block", time: "08:00", date: new Date().toISOString().split('T')[0], context: "Work" },
+      { text: "Lunch & recharge", time: "12:30", date: new Date().toISOString().split('T')[0], context: "Health" },
+      { text: "End-of-day review", time: "17:30", date: new Date().toISOString().split('T')[0], context: "Work" }
     ];
     for (const s of samples) {
-      await addReminder(s.text, s.time, s.context);
+      await addReminder(s.text, s.time, s.date, s.context);
     }
   };
 
@@ -120,8 +135,8 @@ export default function Dashboard() {
     setShowFocusModal(true);
   };
 
-    const handleSuggestionAdd = async (suggestion) => {
-    await addReminder(suggestion, '10:00', 'Work');
+  const handleSuggestionAdd = async (suggestion) => {
+    await addReminder(suggestion, '10:00', new Date().toISOString().split('T')[0], 'Work');
   };
 
   React.useEffect(() => {
@@ -253,7 +268,16 @@ export default function Dashboard() {
                 />
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+             <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <div className="text-sm font-medium mb-2 text-text-secondary">DATE</div>
+                  <input
+                    type="date"
+                    value={newReminder.date}
+                    onChange={(e) => setNewReminder({ ...newReminder, date: e.target.value })}
+                    className="w-full bg-background border border-border rounded-2xl px-5 py-3.5 text-lg focus:outline-none focus:border-primary"
+                  />
+                </div>
                 <div>
                   <div className="text-sm font-medium mb-2 text-text-secondary">TIME</div>
                   <input
