@@ -8,7 +8,6 @@ import json
 
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
 
-# All models you requested
 AVAILABLE_MODELS = {
     "nemotron": "nvidia/llama-3.1-nemotron-70b-instruct",
     "deepseek": "deepseek-ai/deepseek-coder-33b-instruct",
@@ -21,7 +20,7 @@ AVAILABLE_MODELS = {
 async def call_nvidia_ai(prompt: str, system_prompt: str = None, model: str = "nemotron"):
     api_key = os.getenv("NVIDIA_API_KEY")
     if not api_key:
-        return "AI service is currently unavailable. Please set NVIDIA_API_KEY in Render environment variables."
+        return "NVIDIA_API_KEY is not set in Render environment variables."
 
     model_name = AVAILABLE_MODELS.get(model.lower(), AVAILABLE_MODELS["nemotron"])
 
@@ -48,8 +47,10 @@ async def call_nvidia_ai(prompt: str, system_prompt: str = None, model: str = "n
             response = await client.post(NVIDIA_API_URL, json=payload, headers=headers)
             response.raise_for_status()
             return response.json()["choices"][0]["message"]["content"]
-    except Exception:
-        return "Sorry, I'm having trouble connecting to the AI right now."
+    except Exception as e:
+        error_msg = str(e)
+        print(f"REAL NVIDIA ERROR: {error_msg}")
+        return f"AI Error: {error_msg}"
 
 async def root(request):
     return JSONResponse({
@@ -62,7 +63,7 @@ async def chat_with_ai(request):
     body = await request.json()
     reply = await call_nvidia_ai(
         body.get("message", ""),
-        system_prompt="You are Remindarin AI, a helpful assistant for reminders and productivity. Be concise, friendly, and context-aware.",
+        system_prompt="You are Remindarin AI, a helpful assistant for reminders and productivity.",
         model=body.get("model", "nemotron")
     )
     return JSONResponse({"reply": reply})
