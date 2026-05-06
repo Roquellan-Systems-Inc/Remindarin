@@ -43,7 +43,7 @@ export default function AIChat() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
-  const sendMessage = async () => {
+    const sendMessage = async () => {
     if (!input.trim() || isTyping) return;
 
     const token = getToken();
@@ -53,6 +53,8 @@ export default function AIChat() {
     }
 
     const userMsg = input.trim();
+
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -67,13 +69,16 @@ export default function AIChat() {
     abortControllerRef.current = controller;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/chat`, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/chat`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`     // ← Auth header added
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ message: userMsg }),
+        body: JSON.stringify({ 
+          message: userMsg,
+          timezone: timezone
+        }),
         signal: controller.signal,
       });
 

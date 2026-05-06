@@ -16,7 +16,8 @@ async def chat_with_ai(request: Request):
     except Exception:
         return JSONResponse({"error": "Invalid JSON body"}, status_code=400)
 
-    user_message = body.get("message", "").strip()
+     user_message = body.get("message", "").strip()
+    timezone = body.get("timezone")
     if not user_message:
         return JSONResponse({"error": "Message is required"}, status_code=400)
 
@@ -44,16 +45,19 @@ async def chat_with_ai(request: Request):
             for r in reminders
         ]) or "No active reminders."
 
-        now = datetime.now()
+         now = datetime.now()
         tomorrow = (now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)).strftime("%Y-%m-%d")
         current_date = now.strftime("%Y-%m-%d")
         current_time = now.strftime("%H:%M")
         current_weekday = now.strftime("%A")
         current_full = now.strftime("%A, %B %d, %Y at %I:%M %p")
 
+        tz_info = f"User timezone: {timezone or 'Asia/Manila'} (Puerto Princesa, Philippines)" if timezone else "User timezone: Asia/Manila (Puerto Princesa, Philippines)"
+
         system_prompt = f"""You are Remindarin AI — a modern, intelligent productivity assistant.
 
 CURRENT DATE AND TIME: {current_full} ({current_weekday})
+{tz_info}
 
 Current active reminders:
 {reminder_context}
