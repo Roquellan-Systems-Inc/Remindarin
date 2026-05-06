@@ -5,9 +5,9 @@ import os
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 
 if not DATABASE_URL:
-    raise ValueError("DATABASE_URL environment variable is not set!")
+    raise ValueError("DATABASE_URL is not set!")
 
-# Convert asyncpg URL to psycopg2 if needed
+# Convert URL if needed
 if "asyncpg" in DATABASE_URL:
     DATABASE_URL = DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
 
