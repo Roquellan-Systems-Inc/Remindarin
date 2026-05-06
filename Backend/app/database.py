@@ -29,6 +29,7 @@ class Reminder(Base):
     id = Column(Integer, primary_key=True, index=True)
     text = Column(String, nullable=False)
     time = Column(String, nullable=True)
+    date = Column(String, nullable=True)
     context = Column(String, default='Work')
     completed = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)

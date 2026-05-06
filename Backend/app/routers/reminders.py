@@ -49,6 +49,7 @@ async def create_reminder(request):
         reminder = Reminder(
             text=body.get("text"),
             time=body.get("time"),
+            date=body.get("date"),
             context=body.get("context", "Work")
         )
         db.add(reminder)
@@ -58,6 +59,7 @@ async def create_reminder(request):
             "id": reminder.id,
             "text": reminder.text,
             "time": reminder.time,
+            "date": reminder.date,
             "context": reminder.context,
             "completed": reminder.completed
         }})
@@ -86,6 +88,7 @@ async def get_dashboard(request):
                 "id": r.id,
                 "text": r.text,
                 "time": r.time,
+                "date": r.date,
                 "context": r.context,
                 "completed": r.completed
             } for r in reminders
