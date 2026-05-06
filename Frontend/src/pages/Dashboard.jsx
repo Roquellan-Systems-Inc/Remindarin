@@ -332,7 +332,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {showReviewModal && (
+    {showReviewModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-6" onClick={() => setShowReviewModal(false)}>
           <div className="bg-foundation rounded-3xl max-w-md w-full p-8 text-center border border-border" onClick={e => e.stopPropagation()}>
             <div className="text-6xl mb-6">📅</div>
@@ -347,11 +347,8 @@ export default function Dashboard() {
           </div>
         </div>
       )}
-    <BottomNav activeTab="home" onCaptureClick={handleQuickCapture} />
-    </div>
-  );
-  
-        {/* Toast notification */}
+
+      {/* Toast notification */}
       {toast && (
         <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[999] px-6 py-3 rounded-2xl shadow-lg text-sm font-medium transition-all flex items-center gap-2 ${
           toast.type === 'success' 
