@@ -4,7 +4,7 @@ import { ArrowLeft, Send, Bot } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://remindarin.onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://accounts.remindarin.orbmiv.com';
 
 export default function AIChat() {
   const navigate = useNavigate();

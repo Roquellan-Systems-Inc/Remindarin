@@ -11,7 +11,7 @@ import BottomNav from '../components/layout/BottomNav';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const API_BASE = "https://remindarin.onrender.com";
+  const API_BASE = "https://accounts.remindarin.orbmiv.com";
   const [reminders, setReminders] = useState([]);
   const [completedToday, setCompletedToday] = useState(0);
   const [streak, setStreak] = useState(12);
