@@ -28,7 +28,6 @@ export default function Signup() {
 
       if (res.ok) {
         setMessage({ type: 'success', text: `Code sent to ${email}. Check your email.` });
-        // Navigate to verify page after a short delay
         setTimeout(() => navigate('/login'), 1800);
       } else {
         setMessage({ type: 'error', text: data.error || 'Failed to send code' });
@@ -37,6 +36,18 @@ export default function Signup() {
       setMessage({ type: 'error', text: 'Network error. Please try again.' });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/auth/google`);
+      const data = await res.json();
+      if (data.auth_url) {
+        window.location.href = data.auth_url;
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -89,6 +100,20 @@ export default function Signup() {
             )}
           </button>
         </form>
+
+        <div className="my-8 flex items-center gap-4">
+          <div className="flex-1 h-px bg-border"></div>
+          <span className="text-xs text-text-secondary font-medium">OR</span>
+          <div className="flex-1 h-px bg-border"></div>
+        </div>
+
+        <button
+          onClick={handleGoogleSignup}
+          className="w-full h-14 border border-border rounded-3xl flex items-center justify-center gap-3 hover:bg-background transition-colors"
+        >
+          <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+          <span className="font-medium">Continue with Google</span>
+        </button>
 
         {message && (
           <div className={`mt-6 px-5 py-4 rounded-3xl text-center text-sm font-medium ${

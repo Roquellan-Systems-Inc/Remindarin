@@ -51,8 +51,7 @@ export default function Login() {
 
       const data = await res.json();
 
-            if (res.ok) {
-        const authContext = require('../../context/AuthContext');
+      if (res.ok) {
         localStorage.setItem('remindarin_user', JSON.stringify({ 
           id: data.user?.id, 
           email: data.user?.email 
@@ -66,6 +65,18 @@ export default function Login() {
       setMessage({ type: 'error', text: 'Network error' });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/auth/google`);
+      const data = await res.json();
+      if (data.auth_url) {
+        window.location.href = data.auth_url;
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -96,28 +107,44 @@ export default function Login() {
         </div>
 
         {step === 'email' ? (
-          <form onSubmit={handleSendCode}>
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-text-secondary mb-2">Email address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@email.com"
-                className="w-full bg-background border border-border rounded-3xl px-6 py-5 text-lg focus:outline-none focus:border-primary"
-                required
-                autoFocus
-              />
+          <>
+            <form onSubmit={handleSendCode}>
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-text-secondary mb-2">Email address</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@email.com"
+                  className="w-full bg-background border border-border rounded-3xl px-6 py-5 text-lg focus:outline-none focus:border-primary"
+                  required
+                  autoFocus
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading || !email.trim()}
+                className="w-full h-14 bg-primary text-text-inverse font-semibold rounded-3xl active:scale-[0.985] transition-all disabled:opacity-50"
+              >
+                {isLoading ? 'Sending code...' : 'Continue with email'}
+              </button>
+            </form>
+
+            <div className="my-8 flex items-center gap-4">
+              <div className="flex-1 h-px bg-border"></div>
+              <span className="text-xs text-text-secondary font-medium">OR</span>
+              <div className="flex-1 h-px bg-border"></div>
             </div>
 
             <button
-              type="submit"
-              disabled={isLoading || !email.trim()}
-              className="w-full h-14 bg-primary text-text-inverse font-semibold rounded-3xl active:scale-[0.985] transition-all disabled:opacity-50"
+              onClick={handleGoogleLogin}
+              className="w-full h-14 border border-border rounded-3xl flex items-center justify-center gap-3 hover:bg-background transition-colors"
             >
-              {isLoading ? 'Sending code...' : 'Continue with email'}
+              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+              <span className="font-medium">Continue with Google</span>
             </button>
-          </form>
+          </>
         ) : (
           <form onSubmit={handleVerify}>
             <div className="mb-6">
