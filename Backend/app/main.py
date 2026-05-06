@@ -4,7 +4,6 @@ import httpx
 import os
 import json
 
-# Disable OpenAPI schema generation to fix pydantic ConfigError on Render
 app = FastAPI(
     title="Remindarin AI Backend",
     version="1.0.0",
