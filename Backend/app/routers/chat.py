@@ -46,7 +46,8 @@ async def chat_with_ai(request: Request):
             for r in reminders
         ]) or "No active reminders."
 
-         now = datetime.now()
+        # === REAL-TIME DATE & TIME INJECTION ===
+        now = datetime.now()
         tomorrow = (now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)).strftime("%Y-%m-%d")
         current_date = now.strftime("%Y-%m-%d")
         current_time = now.strftime("%H:%M")
@@ -87,7 +88,7 @@ Be helpful, concise, friendly, and proactive."""
 
         reply = await call_nvidia_ai(user_message, system_prompt)
 
-        json_match = re.search(r'```json\s*(\{.*?\})\s*```', reply, re.DOTALL | re.IGNORECASE)
+        json_match = re.search(r'```json
         if json_match:
             try:
                 action_data = json.loads(json_match.group(1))
