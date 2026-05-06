@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import BottomNav from '../components/layout/BottomNav';
 
 const API_BASE = "https://accounts.remindarin.orbmiv.com";
 
@@ -67,22 +67,10 @@ export default function QuickCapture() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-text-primary">
-      <div className="fixed top-0 left-0 right-0 z-50 bg-foundation/95 backdrop-blur-lg border-b border-border">
-        <div className="max-w-3xl mx-auto px-6 h-16 flex items-center">
-          <button 
-            onClick={() => navigate('/dashboard')}
-            className="p-2 text-text-secondary hover:text-text-primary"
-          >
-            <ArrowLeft size={24} />
-          </button>
-          <div className="flex-1 text-center">
-            <span className="font-semibold text-xl">Quick Capture</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="pt-20 px-6 max-w-3xl mx-auto">
+    <div className="min-h-screen bg-background text-text-primary pb-20">
+      <div className="pt-8 px-6 max-w-3xl mx-auto">
+        <div className="text-3xl font-semibold tracking-tighter mb-8">Quick Capture</div>
+        
         <div className="bg-foundation rounded-3xl p-6 space-y-8">
           <div>
             <div className="text-sm font-medium mb-2 text-text-secondary">WHAT NEEDS TO BE DONE?</div>
@@ -148,12 +136,14 @@ export default function QuickCapture() {
       </div>
 
       {toast && (
-        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[999] px-6 py-3 rounded-2xl shadow-lg text-sm font-medium transition-all ${
+        <div className={`fixed bottom-24 left-1/2 -translate-x-1/2 z-[999] px-6 py-3 rounded-2xl shadow-lg text-sm font-medium transition-all ${
           toast.type === 'success' ? 'bg-accent-positive text-text-inverse' : 'bg-red-500 text-white'
         }`}>
           {toast.message}
         </div>
       )}
+
+      <BottomNav activeTab="capture" />
     </div>
   );
 }

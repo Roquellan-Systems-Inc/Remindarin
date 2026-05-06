@@ -29,7 +29,7 @@ function App() {
               </ProtectedRoute>
             } 
           />
-         <Route 
+           <Route 
             path="/ai" 
             element={
               <ProtectedRoute>
@@ -50,6 +50,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <Reminders />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/insights" 
+            element={
+              <ProtectedRoute>
+                <Insights />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             } 
           />

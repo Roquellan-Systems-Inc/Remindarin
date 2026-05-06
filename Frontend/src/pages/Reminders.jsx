@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import BottomNav from '../components/layout/BottomNav';
 
 const API_BASE = "https://accounts.remindarin.orbmiv.com";
 
@@ -61,57 +62,43 @@ export default function Reminders() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-text-primary">
-      <div className="fixed top-0 left-0 right-0 z-50 bg-foundation/95 backdrop-blur-lg border-b border-border">
-        <div className="max-w-3xl mx-auto px-6 h-16 flex items-center">
-          <button 
-            onClick={() => navigate('/dashboard')}
-            className="p-2 text-text-secondary hover:text-text-primary"
-          >
-            <ArrowLeft size={24} />
-          </button>
-          <div className="flex-1 text-center">
-            <span className="font-semibold text-xl">Reminders</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="pt-20 px-6 max-w-3xl mx-auto">
-        <div className="text-3xl font-semibold tracking-tighter mb-8">All Active Reminders</div>
+    <div className="min-h-screen bg-background text-text-primary pb-20">
+      <div className="pt-8 px-6 max-w-3xl mx-auto">
+        <div className="text-3xl font-semibold tracking-tighter mb-8">Reminders</div>
         
         {isLoading ? (
-          <div className="text-center py-12 text-text-secondary">Loading your reminders...</div>
+          <div className="text-center py-12 text-text-secondary">Loading reminders...</div>
         ) : reminders.length === 0 ? (
-          <div className="bg-foundation rounded-3xl p-8 text-center">
-            <div className="text-5xl mb-4">🎉</div>
-            <div className="font-medium">No active reminders</div>
-            <div className="text-text-secondary mt-2">You're all caught up. Great work!</div>
+          <div className="bg-foundation rounded-3xl p-12 text-center">
+            <div className="text-6xl mb-6">🎯</div>
+            <div className="text-2xl font-medium">All caught up!</div>
+            <div className="text-text-secondary mt-3">No active reminders right now.</div>
           </div>
         ) : (
           <div className="space-y-4">
             {reminders.map((reminder) => (
-              <div key={reminder.id} className="bg-foundation rounded-3xl p-6 flex items-center justify-between">
+              <div key={reminder.id} className="bg-foundation rounded-3xl p-6 flex items-center justify-between group">
                 <div className="flex-1">
-                  <div className="font-medium text-lg">{reminder.text}</div>
-                  <div className="text-sm text-text-secondary mt-1 flex items-center gap-2">
+                  <div className="font-medium">{reminder.text}</div>
+                  <div className="flex items-center gap-3 text-sm text-text-secondary mt-3">
                     <span>{reminder.date || 'Today'}</span>
-                    <span className="text-primary">•</span>
-                    <span>{reminder.time}</span>
-                    <span className="text-primary">•</span>
-                    <span>{reminder.context}</span>
+                    {reminder.time && <span className="font-mono">{reminder.time}</span>}
+                    <span className="px-3 py-1 bg-background rounded-full text-xs">{reminder.context}</span>
                   </div>
                 </div>
                 <button
                   onClick={() => completeReminder(reminder.id)}
-                  className="text-accent-positive hover:scale-110 transition-transform"
+                  className="text-emerald-500 hover:text-emerald-600 transition-colors p-2"
                 >
-                  <CheckCircle size={32} />
+                  <CheckCircle size={36} />
                 </button>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      <BottomNav activeTab="reminders" />
     </div>
   );
 }
