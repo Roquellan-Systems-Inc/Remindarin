@@ -1,32 +1,29 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from starlette.applications import Starlette
+from starlette.responses import JSONResponse
+from starlette.middleware.cors import CORSMiddleware
+from starlette.routing import Route
 import httpx
 import os
 import json
 
-app = FastAPI(
-    title="Remindarin AI Backend",
-    version="1.0.0",
-    openapi_url=None,   # This fixes the pydantic ConfigError
-    docs_url=None,
-    redoc_url=None
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
-MODEL = "nvidia/llama-3.1-nemotron-70b-instruct"
 
-async def call_nvidia_ai(prompt: str, system_prompt: str = None):
+# All models you requested
+AVAILABLE_MODELS = {
+    "nemotron": "nvidia/llama-3.1-nemotron-70b-instruct",
+    "deepseek": "deepseek-ai/deepseek-coder-33b-instruct",
+    "qwen": "qwen/qwen2.5-72b-instruct",
+    "gemma": "google/gemma-2-27b-it",
+    "llama": "meta/llama-3.1-70b-instruct",
+    "grok": "nvidia/llama-3.1-nemotron-70b-instruct",
+}
+
+async def call_nvidia_ai(prompt: str, system_prompt: str = None, model: str = "nemotron"):
     api_key = os.getenv("NVIDIA_API_KEY")
     if not api_key:
         return "AI service is currently unavailable. Please set NVIDIA_API_KEY in Render environment variables."
+
+    model_name = AVAILABLE_MODELS.get(model.lower(), AVAILABLE_MODELS["nemotron"])
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -39,7 +36,7 @@ async def call_nvidia_ai(prompt: str, system_prompt: str = None):
     messages.append({"role": "user", "content": prompt})
 
     payload = {
-        "model": MODEL,
+        "model": model_name,
         "messages": messages,
         "max_tokens": 1024,
         "temperature": 0.4,
@@ -54,24 +51,46 @@ async def call_nvidia_ai(prompt: str, system_prompt: str = None):
     except Exception:
         return "Sorry, I'm having trouble connecting to the AI right now."
 
-@app.get("/")
-async def root():
-    return {"message": "Remindarin AI Backend is running", "status": "healthy", "region": "singapore"}
+async def root(request):
+    return JSONResponse({
+        "message": "Remindarin AI Backend is running",
+        "status": "healthy",
+        "region": "singapore"
+    })
 
-@app.post("/api/v1/chat")
-async def chat_with_ai(request: dict):
-    system_prompt = "You are Remindarin AI, a helpful assistant for reminders and productivity. Be concise, friendly, and context-aware."
-    reply = await call_nvidia_ai(request.get("message", ""), system_prompt)
-    return {"reply": reply}
+async def chat_with_ai(request):
+    body = await request.json()
+    reply = await call_nvidia_ai(
+        body.get("message", ""),
+        system_prompt="You are Remindarin AI, a helpful assistant for reminders and productivity. Be concise, friendly, and context-aware.",
+        model=body.get("model", "nemotron")
+    )
+    return JSONResponse({"reply": reply})
 
-@app.post("/api/v1/reminders/parse")
-async def parse_reminder(request: dict):
-    system_prompt = """Extract structured reminder data from the user's message.
+async def parse_reminder(request):
+    body = await request.json()
+    result = await call_nvidia_ai(
+        body.get("text", ""),
+        system_prompt="""Extract structured reminder data from the user's message.
 Return ONLY valid JSON with these keys: text, time, location, priority, duration.
-If any value is missing, use null. Priority can be low, medium, or high."""
-    result = await call_nvidia_ai(request.get("text", ""), system_prompt)
+If any value is missing, use null. Priority can be low, medium, or high.""",
+        model=body.get("model", "nemotron")
+    )
     try:
         data = json.loads(result)
-        return {"success": True, "reminder": data}
+        return JSONResponse({"success": True, "reminder": data})
     except:
-        return {"success": False, "error": "Failed to parse reminder", "raw": result}
+        return JSONResponse({"success": False, "error": "Failed to parse reminder", "raw": result})
+
+app = Starlette(debug=True, routes=[
+    Route("/", root, methods=["GET"]),
+    Route("/api/v1/chat", chat_with_ai, methods=["POST"]),
+    Route("/api/v1/reminders/parse", parse_reminder, methods=["POST"]),
+])
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
