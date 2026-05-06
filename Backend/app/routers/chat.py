@@ -63,8 +63,10 @@ If you create a reminder, end your response with this exact JSON block:
 
 Be helpful, concise, friendly, and proactive."""
 
+        # Call NVIDIA AI
         reply = await call_nvidia_ai(user_message, system_prompt)
 
+        # Auto-detect and create reminder if AI returned structured JSON
         json_match = re.search(r'```json\s*(\{.*?\})\s*```', reply, re.DOTALL | re.IGNORECASE)
         if json_match:
             try:
@@ -81,8 +83,9 @@ Be helpful, concise, friendly, and proactive."""
                     db.refresh(reminder)
                     reply += f"\n\n✅ **Reminder successfully created!**\n**ID:** {reminder.id} | {reminder.date or 'Today'} {reminder.time or ''} | {reminder.context}"
             except Exception:
-                pass
+                pass  # silently ignore parsing errors
 
+        # Save AI response
         assistant_msg = ChatMessage(role="assistant", content=reply)
         db.add(assistant_msg)
         db.commit()
