@@ -1,24 +1,10 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from starlette.applications import Starlette
+from starlette.responses import JSONResponse
+from starlette.middleware.cors import CORSMiddleware
+from starlette.routing import Route
 import httpx
 import os
 import json
-
-app = FastAPI(
-    title="Remindarin AI Backend",
-    version="1.0.0",
-    openapi_url=None,
-    docs_url=None,
-    redoc_url=None
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
 MODEL = "nvidia/llama-3.1-nemotron-70b-instruct"
@@ -54,28 +40,40 @@ async def call_nvidia_ai(prompt: str, system_prompt: str = None):
     except Exception:
         return "Sorry, I'm having trouble connecting to the AI right now."
 
-@app.get("/")
-async def root():
-    return {
+async def root(request):
+    return JSONResponse({
         "message": "Remindarin AI Backend is running",
         "status": "healthy",
         "region": "singapore"
-    }
+    })
 
-@app.post("/api/v1/chat")
-async def chat_with_ai(request: dict):
+async def chat_with_ai(request):
+    body = await request.json()
     system_prompt = "You are Remindarin AI, a helpful assistant for reminders and productivity. Be concise, friendly, and context-aware."
-    reply = await call_nvidia_ai(request.get("message", ""), system_prompt)
-    return {"reply": reply}
+    reply = await call_nvidia_ai(body.get("message", ""), system_prompt)
+    return JSONResponse({"reply": reply})
 
-@app.post("/api/v1/reminders/parse")
-async def parse_reminder(request: dict):
+async def parse_reminder(request):
+    body = await request.json()
     system_prompt = """Extract structured reminder data from the user's message.
 Return ONLY valid JSON with these keys: text, time, location, priority, duration.
 If any value is missing, use null. Priority can be low, medium, or high."""
-    result = await call_nvidia_ai(request.get("text", ""), system_prompt)
+    result = await call_nvidia_ai(body.get("text", ""), system_prompt)
     try:
         data = json.loads(result)
-        return {"success": True, "reminder": data}
+        return JSONResponse({"success": True, "reminder": data})
     except:
-        return {"success": False, "error": "Failed to parse reminder", "raw": result}
+        return JSONResponse({"success": False, "error": "Failed to parse reminder", "raw": result})
+
+app = Starlette(debug=True, routes=[
+    Route("/", root, methods=["GET"]),
+    Route("/api/v1/chat", chat_with_ai, methods=["POST"]),
+    Route("/api/v1/reminders/parse", parse_reminder, methods=["POST"]),
+])
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
