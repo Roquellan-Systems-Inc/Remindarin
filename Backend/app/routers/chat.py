@@ -8,7 +8,7 @@ import re
 import json
 
 async def chat_with_ai(request: Request):
-        auth = await require_auth(request)
+    auth = await require_auth(request)
     if isinstance(auth, JSONResponse):
         return auth
 
