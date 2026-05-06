@@ -70,10 +70,6 @@ export default function Dashboard() {
     }
   };
 
-  const completeReminder = (id) => {
-    setReminders(prev => prev.map(r => r.id === id ? { ...r, completed: true } : r));
-  };
-
   const handleQuickCapture = () => {
     setNewReminder({ text: '', time: '09:00', context: 'Work' });
     setShowCaptureSheet(true);
