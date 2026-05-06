@@ -8,6 +8,7 @@ export default function Signup() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
   const handleSignup = async (e) => {
@@ -39,7 +40,8 @@ export default function Signup() {
     }
   };
 
-    const handleGoogleSignup = async () => {
+      const handleGoogleSignup = async () => {
+    setGoogleLoading(true);
     try {
       const res = await fetch(`${API_BASE}/api/v1/auth/google`);
       const data = await res.json();
@@ -48,6 +50,8 @@ export default function Signup() {
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -107,12 +111,22 @@ export default function Signup() {
           <div className="flex-1 h-px bg-border"></div>
         </div>
 
-        <button
+                <button
           onClick={handleGoogleSignup}
-          className="w-full h-14 border border-border rounded-3xl flex items-center justify-center gap-3 hover:bg-background transition-colors"
+          disabled={googleLoading}
+          className="w-full h-14 border border-border rounded-3xl flex items-center justify-center gap-3 hover:bg-background transition-colors disabled:opacity-70"
         >
-          <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
-          <span className="font-medium">Continue with Google</span>
+          {googleLoading ? (
+            <>
+              <span className="w-4 h-4 border-2 border-text-secondary/30 border-t-text-secondary rounded-full animate-spin" />
+              <span className="font-medium">Connecting to Google...</span>
+            </>
+          ) : (
+            <>
+              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+              <span className="font-medium">Continue with Google</span>
+            </>
+          )}
         </button>
 
         {message && (

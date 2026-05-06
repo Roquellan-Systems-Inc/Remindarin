@@ -151,12 +151,10 @@ async def google_callback(request: Request):
         finally:
             db.close()
 
-        return JSONResponse({
-            "success": True,
-            "redirect": "/dashboard"
-        })
+        from starlette.responses import RedirectResponse
+        return RedirectResponse(url="/dashboard", status_code=302)
     except Exception as e:
-        return JSONResponse({"error": "Google login failed"}, status_code=400)
+        return JSONResponse({"error": "Google login failed"}, status_code=400))
 
 # Define routes
 auth_router = Router([
