@@ -31,8 +31,16 @@ async def signup(request: Request):
             db.commit()
             db.refresh(user)
 
-        # Generate 6-digit code
-        code = f"{random.randint(100000, 999999)}"
+        dev_email = os.getenv("DEV_EMAIL", "").strip().lower()
+        dev_code = os.getenv("DEV_CODE")
+
+        if dev_email and email == dev_email and dev_code:
+            code = dev_code
+            print(f"\n🔧 DEV MODE: Using fixed code {code} for {email}")
+        else:
+            # Generate normal 6-digit code
+            code = f"{random.randint(100000, 999999)}"
+
         expires = datetime.utcnow() + timedelta(minutes=10)
 
         # Delete old codes
