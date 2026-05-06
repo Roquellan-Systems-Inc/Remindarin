@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, X, Bot } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import TodaysOverview from '../components/dashboard/TodaysOverview';
 import QuickCaptureButton from '../components/dashboard/QuickCaptureButton';
 import UpcomingReminders from '../components/dashboard/UpcomingReminders';
@@ -11,7 +12,18 @@ import BottomNav from '../components/layout/BottomNav';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
   const API_BASE = "https://accounts.remindarin.orbmiv.com";
+
+  const getToken = () => {
+    if (!user?.id || !user?.email) {
+      navigate('/login');
+      return null;
+    }
+    return btoa(`${user.id}:${user.email}`);
+  };
+
   const [reminders, setReminders] = useState([]);
   const [completedToday, setCompletedToday] = useState(0);
   const [streak, setStreak] = useState(12);
@@ -32,9 +44,14 @@ export default function Dashboard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
 
-  const fetchDashboard = async () => {
+    const fetchDashboard = async () => {
+    const token = getToken();
+    if (!token) return;
+
     try {
-      const res = await fetch(`${API_BASE}/api/v1/dashboard`);
+      const res = await fetch(`${API_BASE}/api/v1/dashboard`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       const data = await res.json();
       setReminders(data.reminders || []);
       setCompletedToday(data.completed_today || 0);
@@ -48,11 +65,17 @@ export default function Dashboard() {
     }
   };
 
-    const addReminder = async (text, time = '09:00', date = null, context = 'Work') => {
+        const addReminder = async (text, time = '09:00', date = null, context = 'Work') => {
+    const token = getToken();
+    if (!token) return;
+
     try {
       const res = await fetch(`${API_BASE}/api/v1/reminders`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ text, time, date, context })
       });
       if (res.ok) {
@@ -63,11 +86,17 @@ export default function Dashboard() {
     }
   };
 
-    const completeReminder = async (id) => {
+   const completeReminder = async (id) => {
+    const token = getToken();
+    if (!token) return;
+
     try {
       const res = await fetch(`${API_BASE}/api/v1/reminders/${id}/complete`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
       });
       if (res.ok) {
         await fetchDashboard();
