@@ -24,6 +24,8 @@ export default function Dashboard() {
   const [isFocusRunning, setIsFocusRunning] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const fetchDashboard = async () => {
     try {
@@ -75,20 +77,37 @@ export default function Dashboard() {
     setShowCaptureSheet(true);
   };
 
-  const submitNewReminder = async () => {
+    const submitNewReminder = async () => {
     if (!newReminder.text.trim()) return;
-    await addReminder(newReminder.text.trim(), newReminder.time, newReminder.context);
-    setShowCaptureSheet(false);
-    setNewReminder({ text: '', time: '09:00', context: 'Work' });
+
+    setIsSubmitting(true);
+    setToast(null);
+
+    try {
+      await addReminder(newReminder.text.trim(), newReminder.time, newReminder.context);
+      setShowCaptureSheet(false);
+      setNewReminder({ text: '', time: '09:00', context: 'Work' });
+      
+      setToast({ message: "✅ Reminder added successfully!", type: "success" });
+      setTimeout(() => setToast(null), 3000);
+    } catch (err) {
+      console.error("Failed to add reminder", err);
+      setToast({ message: "❌ Failed to save reminder. Please try again.", type: "error" });
+      setTimeout(() => setToast(null), 4000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handlePlanDay = () => {
+    const handlePlanDay = async () => {
     const samples = [
       { text: "Morning deep work block", time: "08:00", context: "Work" },
       { text: "Lunch & recharge", time: "12:30", context: "Health" },
       { text: "End-of-day review", time: "17:30", context: "Work" }
     ];
-    samples.forEach(s => addReminder(s.text, s.time, s.context));
+    for (const s of samples) {
+      await addReminder(s.text, s.time, s.context);
+    }
   };
 
   const handleReviewYesterday = () => {
@@ -101,8 +120,8 @@ export default function Dashboard() {
     setShowFocusModal(true);
   };
 
-  const handleSuggestionAdd = (suggestion) => {
-    addReminder(suggestion, '10:00', 'Work');
+    const handleSuggestionAdd = async (suggestion) => {
+    await addReminder(suggestion, '10:00', 'Work');
   };
 
   React.useEffect(() => {
@@ -202,7 +221,7 @@ export default function Dashboard() {
         <Bot size={24} />
       </button>
 
-  {showCaptureSheet && (
+    {showCaptureSheet && (
         <div 
           className="fixed inset-0 z-[70] bg-black/60 flex items-end"
           onClick={(e) => {
@@ -263,16 +282,24 @@ export default function Dashboard() {
             <div className="px-6 py-5 border-t border-border flex gap-3">
               <button 
                 onClick={() => setShowCaptureSheet(false)}
+                disabled={isSubmitting}
                 className="flex-1 h-12 rounded-2xl border border-border font-medium hover:bg-background transition-colors"
               >
                 Cancel
               </button>
               <button 
                 onClick={submitNewReminder}
-                disabled={!newReminder.text.trim()}
-                className="flex-1 h-12 rounded-2xl bg-primary text-text-inverse font-semibold disabled:opacity-40 active:scale-[0.985] transition-all"
+                disabled={!newReminder.text.trim() || isSubmitting}
+                className="flex-1 h-12 rounded-2xl bg-primary text-text-inverse font-semibold disabled:opacity-40 active:scale-[0.985] transition-all flex items-center justify-center gap-2"
               >
-                Add Reminder
+                {isSubmitting ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                    Adding...
+                  </>
+                ) : (
+                  "Add Reminder"
+                )}
               </button>
             </div>
           </div>
@@ -320,6 +347,21 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+    <BottomNav activeTab="home" onCaptureClick={handleQuickCapture} />
+    </div>
+  );
+  
+        {/* Toast notification */}
+      {toast && (
+        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[999] px-6 py-3 rounded-2xl shadow-lg text-sm font-medium transition-all flex items-center gap-2 ${
+          toast.type === 'success' 
+            ? 'bg-accent-positive text-text-inverse' 
+            : 'bg-red-500 text-white'
+        }`}>
+          {toast.message}
+        </div>
+      )}
+
     <BottomNav activeTab="home" onCaptureClick={handleQuickCapture} />
     </div>
   );
