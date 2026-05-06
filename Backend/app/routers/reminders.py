@@ -1,25 +1,22 @@
-from fastapi import APIRouter
-from pydantic import BaseModel
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+import json
+from nvidia_ai import call_nvidia_ai
 
-router = APIRouter(prefix="/api/v1/reminders", tags=["Reminders"])
-
-class ParseRequest(BaseModel):
-    text: str
-
-@router.post("/parse")
-async def parse_reminder(request: ParseRequest):
-    # Lazy import to avoid startup crashes
-    from app.services.nvidia_ai import call_nvidia_ai
-    import json
+async def parse_reminder(request: Request):
+    try:
+        body = await request.json()
+    except:
+        return JSONResponse({"success": False, "error": "Invalid JSON body"}, status_code=400)
 
     system_prompt = """Extract structured reminder data from the user's message.
-    Return ONLY valid JSON with these keys: text, time, location, priority, duration.
-    If any value is missing, use null. Priority can be low, medium, or high."""
+Return ONLY valid JSON with these keys: text, time, location, priority, duration.
+If any value is missing, use null. Priority can be low, medium, or high."""
 
-    result = await call_nvidia_ai(request.text, system_prompt)
+    result = await call_nvidia_ai(body.get("text", ""), system_prompt)
     
     try:
         data = json.loads(result)
-        return {"success": True, "reminder": data}
-    except:
-        return {"success": False, "error": "Failed to parse reminder", "raw": result}
+        return JSONResponse({"success": True, "reminder": data})
+    except Exception:
+        return JSONResponse({"success": False, "error": "Failed to parse reminder", "raw": result})
