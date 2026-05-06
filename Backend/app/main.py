@@ -4,7 +4,6 @@ import httpx
 import os
 import json
 
-# Disable OpenAPI to prevent pydantic ConfigError on Render
 app = FastAPI(
     title="Remindarin AI Backend",
     version="1.0.0",
@@ -57,11 +56,7 @@ async def call_nvidia_ai(prompt: str, system_prompt: str = None):
 
 @app.get("/")
 async def root():
-    return {
-        "message": "Remindarin AI Backend is running",
-        "status": "healthy",
-        "region": "singapore"
-    }
+    return {"message": "Remindarin AI Backend is running", "status": "healthy", "region": "singapore"}
 
 @app.post("/api/v1/chat")
 async def chat_with_ai(request: dict):
