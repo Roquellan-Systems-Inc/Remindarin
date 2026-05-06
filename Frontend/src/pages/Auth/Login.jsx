@@ -40,8 +40,6 @@ export default function Login() {
     }
   };
 
-      const { login } = useAuth();
-
   const handleVerify = async (e) => {
     e.preventDefault();
     if (!code.trim()) return;
