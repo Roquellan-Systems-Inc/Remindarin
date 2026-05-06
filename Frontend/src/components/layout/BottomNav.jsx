@@ -5,10 +5,10 @@ import { Home, PlusCircle, ListTodo, TrendingUp, User } from 'lucide-react';
 export default function BottomNav({ activeTab = 'home', onCaptureClick }) {
   const navigate = useNavigate();
 
-  const tabs = [
+    const tabs = [
     { id: 'home', label: 'Home', icon: Home, action: () => navigate('/dashboard') },
-    { id: 'capture', label: 'Capture', icon: PlusCircle, action: onCaptureClick },
-    { id: 'reminders', label: 'Reminders', icon: ListTodo, action: () => navigate('/dashboard#upcoming') },
+    { id: 'capture', label: 'Capture', icon: PlusCircle, action: () => navigate('/capture') },
+    { id: 'reminders', label: 'Reminders', icon: ListTodo, action: () => navigate('/reminders') },
     { id: 'insights', label: 'Insights', icon: TrendingUp, action: () => alert('Insights page coming soon') },
     { id: 'profile', label: 'Profile', icon: User, action: () => alert('Profile page coming soon') },
   ];

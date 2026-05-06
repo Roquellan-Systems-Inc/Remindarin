@@ -111,9 +111,6 @@ export default function AIChat() {
             >
               <ArrowLeft size={22} />
             </button>
-            <div className="w-9 h-9 bg-primary rounded-2xl flex items-center justify-center">
-              <Bot size={18} className="text-text-inverse" />
-            </div>
           </div>
         </div>
       </div>
@@ -121,10 +118,7 @@ export default function AIChat() {
       <div className="flex-1 max-w-3xl mx-auto w-full px-6 pt-20 pb-24 overflow-y-auto">
         {showWelcome && messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-[60vh] text-center">
-            <div className="w-20 h-20 bg-primary rounded-3xl flex items-center justify-center mb-8">
-              <Bot size={40} className="text-text-inverse" />
-            </div>
-            <div className="text-4xl font-semibold tracking-tight mb-3">Remindarin AI</div>
+            <div className="text-4xl font-semibold tracking-tight mb-3">RemindArin</div>
             <div className="text-xl text-text-secondary max-w-xs">Your personal assistant for smarter reminders and better days.</div>
             
             <div className="mt-12 grid grid-cols-1 gap-3 w-full max-w-xs">

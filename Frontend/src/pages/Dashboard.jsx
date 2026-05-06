@@ -196,30 +196,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background text-text-primary">
-      <div className="fixed top-0 left-0 right-0 z-50 bg-foundation/95 backdrop-blur-lg border-b border-border">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => navigate('/')} 
-              className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors p-2 -ml-2"
-            >
-              <ArrowLeft size={20} />
-              <span className="font-medium text-sm">Back to home</span>
-            </button>
-            <div className="flex items-center gap-3 ml-4">
-              <div className="w-9 h-9 bg-primary rounded-2xl flex items-center justify-center">
-                <span className="text-text-inverse font-bold text-xl">R</span>
-              </div>
-              <div>
-                <div className="font-semibold text-xl tracking-tight">Remindarin</div>
-                <div className="text-[10px] text-text-secondary -mt-1">Dashboard</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-6 pt-24 pb-16">
+      <div className="max-w-7xl mx-auto px-6 pt-8 pb-16">
         <div className="mb-8">
           <div className="text-4xl font-semibold tracking-tighter">Good morning, Ivan.</div>
           <div className="text-text-secondary mt-1">Here's your day at a glance.</div>

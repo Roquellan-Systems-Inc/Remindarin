@@ -3,6 +3,8 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import AIChat from './pages/AIChat';
+import QuickCapture from './pages/QuickCapture';
+import Reminders from './pages/Reminders';
 import Signup from './pages/Auth/Signup';
 import Login from './pages/Auth/Login';
 
@@ -27,11 +29,27 @@ function App() {
               </ProtectedRoute>
             } 
           />
-          <Route 
+         <Route 
             path="/ai" 
             element={
               <ProtectedRoute>
                 <AIChat />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/capture" 
+            element={
+              <ProtectedRoute>
+                <QuickCapture />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/reminders" 
+            element={
+              <ProtectedRoute>
+                <Reminders />
               </ProtectedRoute>
             } 
           />
