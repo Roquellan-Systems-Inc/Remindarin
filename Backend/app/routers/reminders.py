@@ -77,7 +77,7 @@ async def create_reminder(request):
 async def complete_reminder(request):
     auth = await require_auth(request)
     if isinstance(auth, JSONResponse):
-        return auth:
+        return auth
     reminder_id = int(request.path_params.get("reminder_id"))
     db = SessionLocal()
     try:
