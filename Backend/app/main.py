@@ -7,7 +7,7 @@ import json
 app = FastAPI(
     title="Remindarin AI Backend",
     version="1.0.0",
-    openapi_url=None,
+    openapi_url=None,   # This fixes the pydantic ConfigError
     docs_url=None,
     redoc_url=None
 )
