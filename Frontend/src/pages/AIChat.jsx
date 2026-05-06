@@ -12,6 +12,7 @@ export default function AIChat() {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
+  
   const abortControllerRef = useRef(null);
   const messagesEndRef = useRef(null);
 
@@ -23,12 +24,21 @@ export default function AIChat() {
     scrollToBottom();
   }, [messages, isTyping]);
 
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        scrollToBottom();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
   const sendMessage = async () => {
     if (!input.trim() || isTyping) return;
 
     const userMsg = input.trim();
 
-    // Cancel any previous request instantly
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -54,14 +64,12 @@ export default function AIChat() {
       const data = await response.json();
       setMessages(prev => [...prev, { role: 'ai', text: data.reply || "I received your message." }]);
     } catch (err) {
-      if (err.name === 'AbortError') {
-        // User cancelled - do nothing
-        return;
-      }
+      if (err.name === 'AbortError') return;
+
       console.error(err);
       setMessages(prev => [...prev, { 
         role: 'ai', 
-        text: "Sorry, I'm having trouble connecting to the AI right now. Please try again." 
+        text: "Sorry, I'm having trouble connecting right now. Please try again." 
       }]);
     } finally {
       setIsTyping(false);
