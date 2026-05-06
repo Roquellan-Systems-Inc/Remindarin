@@ -17,9 +17,8 @@ app.include_router(chat.router)
 app.include_router(reminders.router)
 
 @app.on_event("startup")
-async def startup():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+def startup():
+    Base.metadata.create_all(bind=engine)
 
 @app.get("/")
 async def root():

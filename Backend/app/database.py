@@ -1,14 +1,17 @@
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 import os
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
 
-engine = create_async_engine(DATABASE_URL, echo=False)
-AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+# Use sync engine with psycopg2
+engine = create_engine(DATABASE_URL.replace("postgresql+asyncpg", "postgresql"))
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-async def get_db():
-    async with AsyncSessionLocal() as session:
-        yield session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
