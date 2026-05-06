@@ -8,22 +8,22 @@ import json
 
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
 
-# Most reliable models for most NVIDIA API keys
+# Nemotron is now the default
 AVAILABLE_MODELS = {
-    "nemotron": "nvidia/llama-3.1-nemotron-70b-instruct",
-    "llama": "meta/llama-3.1-70b-instruct",           # Most widely available
+    "nemotron": "nvidia/llama-3.1-nemotron-70b-instruct",   # Default
     "deepseek": "deepseek-ai/deepseek-coder-33b-instruct",
     "qwen": "qwen/qwen2.5-72b-instruct",
     "gemma": "google/gemma-2-27b-it",
-    "grok": "meta/llama-3.1-70b-instruct",
+    "llama": "meta/llama-3.1-70b-instruct",
+    "grok": "nvidia/llama-3.1-nemotron-70b-instruct",
 }
 
-async def call_nvidia_ai(prompt: str, system_prompt: str = None, model: str = "llama"):
+async def call_nvidia_ai(prompt: str, system_prompt: str = None, model: str = "nemotron"):
     api_key = os.getenv("NVIDIA_API_KEY")
     if not api_key:
         return "NVIDIA_API_KEY is not set in Render environment variables."
 
-    model_name = AVAILABLE_MODELS.get(model.lower(), AVAILABLE_MODELS["llama"])
+    model_name = AVAILABLE_MODELS.get(model.lower(), AVAILABLE_MODELS["nemotron"])
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -66,7 +66,7 @@ async def chat_with_ai(request):
     reply = await call_nvidia_ai(
         body.get("message", ""),
         system_prompt="You are Remindarin AI, a helpful assistant for reminders and productivity. Be concise, friendly, and context-aware.",
-        model=body.get("model", "llama")
+        model=body.get("model", "nemotron")   # Nemotron is default
     )
     return JSONResponse({"reply": reply})
 
@@ -77,7 +77,7 @@ async def parse_reminder(request):
         system_prompt="""Extract structured reminder data from the user's message.
 Return ONLY valid JSON with these keys: text, time, location, priority, duration.
 If any value is missing, use null. Priority can be low, medium, or high.""",
-        model=body.get("model", "llama")
+        model=body.get("model", "nemotron")
     )
     try:
         data = json.loads(result)
