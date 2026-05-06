@@ -2,7 +2,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 import json
 from ..services.nvidia_ai import call_nvidia_ai
-from .database import SessionLocal, Reminder
+from ..database import SessionLocal, Reminder
 
 async def parse_reminder(request: Request):
     try:

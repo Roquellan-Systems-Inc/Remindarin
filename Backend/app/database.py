@@ -22,8 +22,8 @@ def get_db():
         yield db
     finally:
         db.close()
-        
-        class Reminder(Base):
+
+class Reminder(Base):
     __tablename__ = 'reminders'
     id = Column(Integer, primary_key=True, index=True)
     text = Column(String, nullable=False)
