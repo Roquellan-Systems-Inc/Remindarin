@@ -15,6 +15,13 @@ async def root(request):
 
 Base.metadata.create_all(bind=engine)
 
+with engine.connect() as conn:
+    try:
+        conn.execute("ALTER TABLE reminders ADD COLUMN IF NOT EXISTS date VARCHAR")
+        conn.commit()
+    except Exception:
+        pass
+
 app = Starlette(debug=True, routes=[
     Route("/", root, methods=["GET"]),
     Route("/api/v1/chat", chat_with_ai, methods=["POST"]),
