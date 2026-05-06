@@ -4,7 +4,8 @@ import httpx
 import os
 import json
 
-app = FastAPI(title="Remindarin AI Backend", version="1.0.0")
+# Disable OpenAPI to avoid pydantic ConfigError on Python 3.14
+app = FastAPI(title="Remindarin AI Backend", version="1.0.0", openapi_url=None)
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,7 +21,7 @@ MODEL = "nvidia/llama-3.1-nemotron-70b-instruct"
 async def call_nvidia_ai(prompt: str, system_prompt: str = None):
     api_key = os.getenv("NVIDIA_API_KEY")
     if not api_key:
-        return "AI service is currently unavailable. Please set your NVIDIA_API_KEY in Render environment variables."
+        return "AI service is currently unavailable. Please set NVIDIA_API_KEY in Render environment variables."
 
     headers = {
         "Authorization": f"Bearer {api_key}",
