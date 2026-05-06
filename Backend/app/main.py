@@ -17,10 +17,6 @@ async def root(request):
 
 Base.metadata.create_all(bind=engine)
 
-from .database import Reminder
-Base.metadata.drop_all(bind=engine, tables=[Reminder.__table__])
-Base.metadata.create_all(bind=engine)
-
 app = Starlette(debug=True, routes=[
     Route("/", root, methods=["GET"]),
     Route("/api/v1/chat", chat_with_ai, methods=["POST"]),
