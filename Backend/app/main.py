@@ -8,22 +8,10 @@ import json
 
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
 
-# Nemotron is now the default
-AVAILABLE_MODELS = {
-    "nemotron": "nvidia/llama-3.1-nemotron-70b-instruct",   # Default
-    "deepseek": "deepseek-ai/deepseek-coder-33b-instruct",
-    "qwen": "qwen/qwen2.5-72b-instruct",
-    "gemma": "google/gemma-2-27b-it",
-    "llama": "meta/llama-3.1-70b-instruct",
-    "grok": "nvidia/llama-3.1-nemotron-70b-instruct",
-}
-
-async def call_nvidia_ai(prompt: str, system_prompt: str = None, model: str = "nemotron"):
+async def call_nvidia_ai(prompt: str, system_prompt: str = None):
     api_key = os.getenv("NVIDIA_API_KEY")
     if not api_key:
         return "NVIDIA_API_KEY is not set in Render environment variables."
-
-    model_name = AVAILABLE_MODELS.get(model.lower(), AVAILABLE_MODELS["nemotron"])
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -36,18 +24,22 @@ async def call_nvidia_ai(prompt: str, system_prompt: str = None, model: str = "n
     messages.append({"role": "user", "content": prompt})
 
     payload = {
-        "model": model_name,
+        "model": "nvidia/nemotron-3-super-120b-a12b",
         "messages": messages,
-        "max_tokens": 1024,
-        "temperature": 0.4,
-        "top_p": 0.9
+        "max_tokens": 16384,
+        "temperature": 1.0,
+        "top_p": 0.95,
+        "extra_body": {
+            "chat_template_kwargs": {"enable_thinking": True},
+            "reasoning_budget": 16384
+        }
     }
 
     try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        async with httpx.AsyncClient(timeout=90.0) as client:
             response = await client.post(NVIDIA_API_URL, json=payload, headers=headers)
             if response.status_code != 200:
-                return f"NVIDIA API Error {response.status_code}: {response.text[:300]}"
+                return f"NVIDIA API Error {response.status_code}: {response.text[:400]}"
             return response.json()["choices"][0]["message"]["content"]
     except Exception as e:
         error_msg = str(e)
@@ -63,11 +55,8 @@ async def root(request):
 
 async def chat_with_ai(request):
     body = await request.json()
-    reply = await call_nvidia_ai(
-        body.get("message", ""),
-        system_prompt="You are Remindarin AI, a helpful assistant for reminders and productivity. Be concise, friendly, and context-aware.",
-        model=body.get("model", "nemotron")   # Nemotron is default
-    )
+    system_prompt = "You are Remindarin AI, a helpful assistant for reminders and productivity. Be concise, friendly, and context-aware."
+    reply = await call_nvidia_ai(body.get("message", ""), system_prompt)
     return JSONResponse({"reply": reply})
 
 async def parse_reminder(request):
@@ -76,8 +65,7 @@ async def parse_reminder(request):
         body.get("text", ""),
         system_prompt="""Extract structured reminder data from the user's message.
 Return ONLY valid JSON with these keys: text, time, location, priority, duration.
-If any value is missing, use null. Priority can be low, medium, or high.""",
-        model=body.get("model", "nemotron")
+If any value is missing, use null. Priority can be low, medium, or high."""
     )
     try:
         data = json.loads(result)
