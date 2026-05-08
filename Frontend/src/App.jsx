@@ -30,22 +30,58 @@ function App() {
     setDeferredPrompt(null);
   };
 
-  const handleBiometricVerify = async () => {
+    const handleBiometricVerify = async () => {
     setIsVerifying(true);
     try {
-      const credential = await navigator.credentials.get({
-        publicKey: {
-          challenge: window.crypto.getRandomValues(new Uint8Array(32)),
-          rpId: window.location.hostname,
-          userVerification: "required",
-          timeout: 120000,
+      const savedCredentialStr = localStorage.getItem('webauthnCredential');
+      if (!savedCredentialStr) {
+        console.warn('No stored biometric credential found');
+        return false;
+      }
+
+      const credentialData = JSON.parse(savedCredentialStr);
+      // Reconstruct rawId (WebAuthn stores it as ArrayBuffer → becomes object after JSON)
+      let rawIdArray;
+      if (credentialData.rawId) {
+        if (credentialData.rawId instanceof Uint8Array || Array.isArray(credentialData.rawId)) {
+          rawIdArray = new Uint8Array(credentialData.rawId);
+        } else if (typeof credentialData.rawId === 'object') {
+          rawIdArray = new Uint8Array(Object.values(credentialData.rawId));
         }
-      });
+      }
+
+      const publicKeyRequest = {
+        challenge: window.crypto.getRandomValues(new Uint8Array(32)),
+        rpId: window.location.hostname,
+        userVerification: "required",
+        timeout: 120000,
+      };
+
+      if (rawIdArray) {
+        publicKeyRequest.allowCredentials = [{
+          type: 'public-key',
+          id: rawIdArray,
+          transports: ['internal']
+        }];
+      }
+
+      const credential = await navigator.credentials.get({ publicKey: publicKeyRequest });
+
       localStorage.setItem('biometricLastVerified', Date.now().toString());
       setShowBiometricSheet(false);
       return true;
     } catch (err) {
       console.error('Biometric verify error:', err.name, err.message);
+
+      if (err.name === 'NotAllowedError' || err.name === 'AbortError') {
+        return false;
+      }
+
+      if (err.name === 'NotFoundError' || err.name === 'InvalidStateError' || err.name === 'NotSupportedError') {
+        setShowBiometricSheet(false);
+        console.warn('No passkey available – biometric requirement skipped this time');
+      }
+
       return false;
     } finally {
       setIsVerifying(false);
@@ -64,6 +100,16 @@ function App() {
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
+  }, []);
+
+  useEffect(() => {
+    const biometricEnabled = localStorage.getItem('biometricEnabled') === 'true';
+    const hasStoredCredential = !!localStorage.getItem('webauthnCredential');
+    const lastVerified = localStorage.getItem('biometricLastVerified');
+
+    if (biometricEnabled && hasStoredCredential && (!lastVerified || Date.now() - parseInt(lastVerified) > 1000 * 60 * 60 * 24)) {
+      setShowBiometricSheet(true);
+    }
   }, []);
 
   useEffect(() => {
