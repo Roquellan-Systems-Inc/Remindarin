@@ -45,7 +45,7 @@ export default function Dashboard() {
   const [toast, setToast] = useState(null);
 
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [showInstallBanner, setShowInstallBanner] = useState(true);
 
     const fetchDashboard = async () => {
     const token = getToken();
@@ -254,7 +254,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-6 pt-8 pb-16">
+      <div className={`max-w-7xl mx-auto px-6 ${showInstallBanner ? 'pt-20' : 'pt-8'} pb-16`}>
         <div className="mb-8">
           <div className="text-4xl font-semibold tracking-tighter">Good morning, Ivan.</div>
           <div className="text-text-secondary mt-1">Here's your day at a glance.</div>
