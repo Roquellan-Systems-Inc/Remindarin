@@ -104,10 +104,12 @@ async def get_dashboard(request):
         return auth
     db = SessionLocal()
     try:
+        # Active reminders for THIS user
         reminders = db.query(Reminder).filter(
             Reminder.completed == False,
             Reminder.user_id == auth["user_id"]
         ).order_by(Reminder.time.asc()).all()
+
         reminder_list = [
             {
                 "id": r.id,
@@ -118,12 +120,21 @@ async def get_dashboard(request):
                 "completed": r.completed
             } for r in reminders
         ]
-        completed_today = db.query(Reminder).filter(Reminder.completed == True).count()
 
-        import httpx
-        from datetime import datetime
+        # Completed TODAY for THIS user
+        from datetime import datetime, date
         now = datetime.now()
+        today_str = now.strftime("%Y-%m-%d")
 
+        completed_today = db.query(Reminder).filter(
+            Reminder.completed == True,
+            Reminder.user_id == auth["user_id"],
+            # If date column is set, it should match today; if null, treat as today
+            (Reminder.date == today_str) | (Reminder.date == None)
+        ).count()
+
+        # Weather (unchanged)
+        import httpx
         try:
             async with httpx.AsyncClient(timeout=8.0) as client:
                 weather_resp = await client.get(

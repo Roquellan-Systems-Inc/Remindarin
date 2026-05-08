@@ -27,8 +27,10 @@ async def chat_with_ai(request: Request):
         db.commit()
         db.refresh(user_msg)
 
+        # 🔒 FIX: filter reminders by the authenticated user
         reminders = db.query(Reminder)\
-            .filter(Reminder.completed == False)\
+            .filter(Reminder.completed == False,
+                    Reminder.user_id == auth["user_id"])\
             .order_by(Reminder.time.asc())\
             .limit(8).all()
 
