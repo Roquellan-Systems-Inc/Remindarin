@@ -103,6 +103,14 @@ function App() {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+  
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => console.log('Service Worker registered for push'))
+        .catch((err) => console.error('SW registration failed', err));
+    }
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -161,14 +169,21 @@ function App() {
     }
   };
 
-  function PushNotificationManager() {
+    function PushNotificationManager() {
     const { user } = useAuth();
     const [askPermission, setAskPermission] = useState(false);
 
     useEffect(() => {
-      // Show the "Enable notifications" banner only if user is logged in
-      // and the browser hasn't been asked yet (permission === 'default').
-      if (user && Notification.permission === 'default') {
+      if (!user) {
+        setAskPermission(false);
+        return;
+      }
+      if (Notification.permission === 'granted') {
+        subscribeToPush();
+        setAskPermission(false);
+        return;
+      }
+      if (Notification.permission === 'default') {
         setAskPermission(true);
       } else {
         setAskPermission(false);
@@ -179,7 +194,6 @@ function App() {
       try {
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
-          // Now that the user granted permission, perform the subscription
           await subscribeToPush();
         }
       } finally {
@@ -190,17 +204,29 @@ function App() {
     if (!askPermission) return null;
 
     return (
-      <div className="fixed bottom-4 left-4 right-4 z-[999] bg-white dark:bg-foundation border border-border rounded-2xl shadow-lg p-4 flex items-center gap-3 animate-slide-up">
-        <span className="text-2xl">🔔</span>
-        <div className="flex-1 text-sm text-text-primary">
-          Get notified when a reminder is due.
+      <div className="fixed inset-x-0 bottom-0 z-[999] bg-white dark:bg-foundation border-t border-border rounded-t-3xl shadow-2xl flex flex-col">
+        <div className="mx-auto w-12 h-1 bg-text-secondary/30 dark:bg-text-secondary/30 rounded-full mt-3 mb-6 flex-shrink-0"></div>
+        <div className="px-6 pb-8 flex flex-col gap-6">
+          <div className="flex items-start gap-4">
+            <span className="text-4xl">🔔</span>
+            <div className="flex-1">
+              <div className="font-semibold text-lg text-text-primary">Enable notifications</div>
+              <div className="text-sm text-text-secondary mt-1">Get reminded instantly when your reminders are due. Never miss a task again.</div>
+            </div>
+          </div>
+          <button
+            onClick={handleEnableClick}
+            className="w-full bg-primary text-text-inverse py-4 rounded-2xl font-semibold text-base active:scale-[0.97] transition-all min-h-[44px]"
+          >
+            Enable Notifications
+          </button>
+          <button
+            onClick={() => setAskPermission(false)}
+            className="w-full text-text-secondary font-medium py-3 text-base active:scale-[0.97] transition-all"
+          >
+            Not now
+          </button>
         </div>
-        <button
-          onClick={handleEnableClick}
-          className="bg-primary text-text-inverse px-4 py-2 rounded-xl font-semibold text-sm active:scale-95 transition-all"
-        >
-          Enable
-        </button>
       </div>
     );
   }
