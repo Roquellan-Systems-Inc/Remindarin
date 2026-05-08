@@ -10,7 +10,6 @@ import Insights from './pages/Insights';
 import Profile from './pages/Profile';
 import Signup from './pages/Auth/Signup';
 import Login from './pages/Auth/Login';
-import BottomSheet from './components/ui/BottomSheet';
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth();
@@ -47,37 +46,37 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <BottomSheet
-          isOpen={showInstallBanner && !!deferredPrompt}
-          onClose={() => {
-            setShowInstallBanner(false);
-            setDeferredPrompt(null);
-          }}
-        >
-          <div className="px-6 py-8 bg-background dark:bg-foundation flex flex-col gap-6">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-primary rounded-3xl flex items-center justify-center flex-shrink-0">
-                <span className="text-text-inverse font-bold text-3xl">R</span>
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-lg">Download the app</div>
-                <div className="flex items-center gap-1 text-sm">
-                  <span className="text-accent-positive font-medium">4.9</span>
-                  <span className="text-yellow-400">★★★★★</span>
-                  <span className="text-text-secondary text-xs">• 2M+</span>
-                </div>
+        {/* PWA Install Banner - exactly like your screenshot */}
+        {showInstallBanner && deferredPrompt && (
+          <div className="fixed top-0 left-0 right-0 z-[999] bg-white dark:bg-foundation border-b border-border px-4 py-3 flex items-center gap-3 shadow-sm">
+            <button 
+              onClick={() => setShowInstallBanner(false)}
+              className="text-text-secondary hover:text-text-primary p-1"
+            >
+              ✕
+            </button>
+            
+            <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center flex-shrink-0">
+              <span className="text-text-inverse font-bold text-2xl">R</span>
+            </div>
+            
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-base">Download the app</div>
+              <div className="flex items-center gap-1 text-sm">
+                <span className="text-accent-positive font-medium">4.9</span>
+                <span className="text-yellow-400">★★★★★</span>
+                <span className="text-text-secondary text-xs">• 2M+</span>
               </div>
             </div>
             
             <button 
               onClick={handleInstallClick}
-              className="w-full bg-primary text-text-inverse py-4 rounded-3xl font-semibold text-base active:scale-95 transition-all"
+              className="bg-primary text-text-inverse px-8 py-2 rounded-2xl font-semibold text-sm active:scale-95 transition-all"
             >
-              Get Remindarin
+              Get
             </button>
           </div>
-        </BottomSheet>
+        )}
 
         <Routes>
           <Route path="/" element={<LandingPage />} />
