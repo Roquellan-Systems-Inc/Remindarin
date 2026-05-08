@@ -1,6 +1,7 @@
 const CACHE_NAME = 'remindarin-v1';
+const OFFLINE_PAGE = '/index.html';
 
-const urlsToCache = [
+const staticAssets = [
   '/',
   '/index.html',
   '/manifest.json',
@@ -10,9 +11,11 @@ const urlsToCache = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(staticAssets);
+    })
   );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
@@ -27,14 +30,19 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
+  if (event.request.method !== 'GET' || !url.protocol.startsWith('http')) {
+    return;
+  }
+
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match('/index.html'))
+      fetch(event.request).catch(() => caches.match(OFFLINE_PAGE))
     );
     return;
   }
@@ -48,7 +56,9 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      const fetchPromise = fetch(event.request).then((networkResponse) => {
+      if (cachedResponse) return cachedResponse;
+
+      return fetch(event.request).then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200) {
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -57,7 +67,6 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       });
-      return cachedResponse || fetchPromise;
     })
   );
 });

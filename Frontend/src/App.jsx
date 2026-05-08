@@ -19,6 +19,7 @@ function ProtectedRoute({ children }) {
 function App() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
@@ -89,6 +90,19 @@ function App() {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
   }, []);
+  
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -101,7 +115,7 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        {showInstallBanner && deferredPrompt && (
+       {showInstallBanner && deferredPrompt && (
           <div className="fixed top-0 left-0 right-0 z-[999] bg-white dark:bg-foundation border-b border-border px-4 py-3 flex items-center gap-3 shadow-sm">
             <button 
               onClick={() => setShowInstallBanner(false)}
@@ -129,6 +143,12 @@ function App() {
             >
               Get
             </button>
+          </div>
+        )}
+
+        {isOffline && (
+          <div className="fixed top-0 left-0 right-0 z-[998] bg-warning/90 text-text-inverse px-4 py-2 text-center text-sm font-medium">
+            ⚠️ Offline • App works with cached data
           </div>
         )}
 
