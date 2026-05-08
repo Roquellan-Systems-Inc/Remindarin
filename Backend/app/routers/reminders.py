@@ -77,7 +77,7 @@ async def create_reminder(request):
             "completed": reminder.completed
         }})
     finally:
-        db.close())
+        db.close()   # FIXED: removed extra ')'
 
 async def complete_reminder(request):
     auth = await require_auth(request)
