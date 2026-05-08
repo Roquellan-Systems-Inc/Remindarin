@@ -7,8 +7,6 @@ export default defineConfig({
 
   build: {
     target: 'esnext',
-    minify: 'esbuild',
-    cssMinify: 'esbuild',
     sourcemap: false,
     rollupOptions: {
       output: {
@@ -22,15 +20,6 @@ export default defineConfig({
   optimizeDeps: {
     esbuildOptions: {
       target: 'esnext',
-      supported: {
-        'top-level-await': true,
-      },
     },
-  },
-
-  esbuild: {
-    target: 'esnext',
-    legalComments: 'none',
-    treeShaking: true,
   },
 })
