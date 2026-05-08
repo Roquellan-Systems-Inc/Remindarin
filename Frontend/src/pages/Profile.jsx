@@ -103,41 +103,51 @@ export default function Profile() {
           <div className="font-semibold text-2xl">{user?.email || 'User'}</div>
           <div className="text-accent-positive text-sm mt-1">✓ Verified</div>
           
-          {/* Biometric Section - Real Production Flow */}
           <div className="mt-10 border border-border rounded-3xl p-6">
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-6">
               <Fingerprint className="text-accent-positive" size={28} />
               <div>
                 <div className="font-semibold text-lg">Biometric Login</div>
-                <div className="text-text-secondary text-sm">Face ID • Fingerprint • Touch ID • Windows Hello</div>
+                <div className="text-text-secondary text-sm">Face ID • Fingerprint • Touch ID</div>
               </div>
             </div>
-            
+
             {biometricEnabled ? (
-              <div className="flex items-center justify-center gap-2 bg-accent-positive/10 text-accent-positive rounded-3xl py-4 px-6">
+              <div className="flex items-center justify-center gap-2 bg-accent-positive/10 text-accent-positive rounded-3xl py-4 px-6 mb-6">
                 <ShieldCheck size={20} />
                 <span className="font-medium">Biometric login is enabled</span>
               </div>
             ) : (
-              <button
-                onClick={handleBiometricEnroll}
-                disabled={isEnrolling}
-                className="w-full h-14 bg-primary text-text-inverse rounded-3xl font-semibold flex items-center justify-center gap-3 active:scale-95 transition-all disabled:opacity-70"
-              >
-                {isEnrolling ? (
-                  <>Enrolling with device...</>
-                ) : (
-                  <>
-                    <Fingerprint size={22} />
-                    Enable Face ID / Fingerprint
-                  </>
-                )}
-              </button>
+              <div className="grid grid-cols-2 gap-4">
+                {/* Fingerprint Button */}
+                <button
+                  onClick={handleBiometricEnroll}
+                  disabled={isEnrolling}
+                  className="h-14 bg-background border border-border rounded-3xl font-medium flex flex-col items-center justify-center gap-1 hover:border-accent-positive transition-colors"
+                >
+                  <Fingerprint size={22} />
+                  <span className="text-sm">Fingerprint</span>
+                </button>
+
+                {/* Face ID Button */}
+                <button
+                  onClick={handleBiometricEnroll}
+                  disabled={isEnrolling}
+                  className="h-14 bg-background border border-border rounded-3xl font-medium flex flex-col items-center justify-center gap-1 hover:border-accent-positive transition-colors"
+                >
+                  <span className="text-2xl">👤</span>
+                  <span className="text-sm">Face ID</span>
+                </button>
+              </div>
             )}
-            
+
             {error && (
-              <p className="mt-4 text-red-500 text-sm">{error}</p>
+              <p className="mt-4 text-red-500 text-sm text-center">{error}</p>
             )}
+
+            <p className="text-xs text-text-secondary text-center mt-6">
+              Your Tecno Camon 40 Pro 5G will show the native system prompt
+            </p>
           </div>
 
           <div className="mt-12 space-y-6">
