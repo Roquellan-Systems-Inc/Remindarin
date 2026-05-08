@@ -129,52 +129,52 @@ export default function Profile() {
               </div>
             </div>
 
-            {biometricEnabled ? (
+                        {biometricEnabled ? (
               <div className="flex items-center justify-center gap-2 bg-accent-positive/10 text-accent-positive rounded-3xl py-4 px-6 mb-6">
                 <ShieldCheck size={20} />
                 <span className="font-medium">Biometric login is enabled</span>
               </div>
             ) : (
-            <div className="grid grid-cols-2 gap-4">
-                <button
-                  onClick={handleBiometricEnroll}
-                  disabled={isEnrolling}
-                  className="h-14 bg-background border border-border rounded-3xl font-medium flex flex-col items-center justify-center gap-1 hover:border-accent-positive transition-colors"
-                >
-                  {isEnrolling ? (
-                    <span className="text-sm">Preparing system prompt...</span>
-                  ) : (
-                    <>
-                      <Fingerprint size={22} />
-                      <span className="text-sm">Fingerprint</span>
-                    </>
-                  )}
-                </button>
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    onClick={handleBiometricEnroll}
+                    disabled={isEnrolling}
+                    className="h-14 bg-background border border-border rounded-3xl font-medium flex flex-col items-center justify-center gap-1 hover:border-accent-positive transition-colors"
+                  >
+                    {isEnrolling ? (
+                      <span className="text-sm">Preparing system prompt...</span>
+                    ) : (
+                      <>
+                        <Fingerprint size={22} />
+                        <span className="text-sm">Fingerprint</span>
+                      </>
+                    )}
+                  </button>
 
-                <button
-                  onClick={handleBiometricEnroll}
-                  disabled={isEnrolling}
-                  className="h-14 bg-background border border-border rounded-3xl font-medium flex flex-col items-center justify-center gap-1 hover:border-accent-positive transition-colors"
-                >
-                  {isEnrolling ? (
-                    <span className="text-sm">Preparing system prompt...</span>
-                  ) : (
-                    <>
-                      <span className="text-2xl">👤</span>
-                      <span className="text-sm">Face ID</span>
-                    </>
-                  )}
-                </button>
-              </div>
+                  <button
+                    onClick={handleBiometricEnroll}
+                    disabled={isEnrolling}
+                    className="h-14 bg-background border border-border rounded-3xl font-medium flex flex-col items-center justify-center gap-1 hover:border-accent-positive transition-colors"
+                  >
+                    {isEnrolling ? (
+                      <span className="text-sm">Preparing system prompt...</span>
+                    ) : (
+                      <>
+                        <span className="text-2xl">👤</span>
+                        <span className="text-sm">Face ID</span>
+                      </>
+                    )}
+                  </button>
+                </div>
 
-              {!biometricEnabled && (
                 <button
                   onClick={handleBiometricBypass}
                   className="mt-6 w-full h-12 bg-background border border-border text-text-secondary rounded-3xl font-medium text-sm flex items-center justify-center gap-2 hover:border-accent-positive transition-colors"
                 >
                   <span>Bypass for testing</span>
                 </button>
-              )}
+              </>
             )}
 
             {error && (
