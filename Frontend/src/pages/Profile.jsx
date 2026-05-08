@@ -17,29 +17,29 @@ export default function Profile() {
     navigate('/login');
   };
 
-      const handleBiometricEnroll = async () => {
+        const handleBiometricEnroll = async () => {
     if (!user) return;
     setIsEnrolling(true);
     setError(null);
 
-    // 1. Check for secure context (WebAuthn requirement)
+    // 1. Secure context check (required for WebAuthn)
     if (!window.isSecureContext) {
       setError('Secure context required');
       setIsEnrolling(false);
-      alert('❌ Biometric authentication requires a secure context.\n\nPlease test on:\n• HTTPS (Vercel deployment)\n• or http://localhost:5173\n\nNon-secure URLs are blocked by the browser for security.');
+      alert('❌ Biometric authentication requires HTTPS.\n\nOn your Tecno Camon 40 Pro 5G:\n1. Deploy to Vercel (HTTPS)\n2. Or test on http://localhost:5173\n\nNon-secure URLs are blocked by Android/Chrome for security.');
       return;
     }
 
-    // 2. Check if WebAuthn is supported by the browser
-    if (!window.PublicKeyCredential) {
+    // 2. WebAuthn support check
+    if (!window.PublicKeyCredential || !navigator.credentials) {
       setError('WebAuthn not supported');
       setIsEnrolling(false);
-      alert('❌ Your browser does not support biometric authentication.\nTry Chrome, Edge, or Safari on a supported device.');
+      alert('❌ Your browser does not support biometric login.\n\nOn Tecno Camon 40 Pro 5G use Chrome or Edge.');
       return;
     }
 
     try {
-      // Real production-ready WebAuthn enrollment
+      // Real production WebAuthn enrollment
       const challenge = window.crypto.getRandomValues(new Uint8Array(32));
 
       const options = {
@@ -68,23 +68,23 @@ export default function Profile() {
 
       const credential = await startRegistration(options);
 
-      console.log('✅ Real biometric credential created:', credential);
+      console.log('✅ Biometric credential created successfully:', credential);
       
       setBiometricEnabled(true);
       localStorage.setItem('biometricEnabled', 'true');
       localStorage.setItem('webauthnCredential', JSON.stringify(credential));
       
-      alert('🎉 Biometric login successfully enabled!\n\nFace ID / Fingerprint / Touch ID is now active on this device.');
+      alert('🎉 Success! Face ID / Fingerprint is now enabled on your Tecno Camon 40 Pro 5G.');
     } catch (err) {
-      console.error('Biometric enrollment failed:', err);
+      console.error('Biometric error:', err.name, err.message);
       setError(err.message || 'Unknown error');
-      
+
       if (err.name === 'NotAllowedError' || err.name === 'AbortError') {
-        alert('❌ You cancelled the biometric prompt or permission was denied.');
+        alert('❌ You cancelled the fingerprint prompt.');
       } else if (err.name === 'NotSupportedError') {
-        alert('❌ Your device does not support platform biometrics (Face ID / Fingerprint).');
+        alert('❌ Your Tecno Camon 40 Pro 5G does not support platform biometrics in this browser.\nTry Chrome or Edge.');
       } else {
-        alert('❌ Biometric enrollment failed.\n\nPlease make sure:\n• You are on HTTPS (Vercel) or localhost\n• Your device supports Face ID / Fingerprint\n• You allow the system prompt');
+        alert('❌ Biometric enrollment failed.\n\nMake sure:\n• Fingerprint is set up in your phone settings\n• You are on HTTPS (Vercel) or localhost\n• You allow the system fingerprint prompt');
       }
     } finally {
       setIsEnrolling(false);
