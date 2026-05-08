@@ -42,7 +42,7 @@ async def chat_with_ai(request: Request):
         current_full = now.strftime("%A, %B %d, %Y at %I:%M %p")
         current_weekday = now.strftime("%A")
 
-                system_prompt = f"""You are Remindarin AI — a modern, intelligent productivity assistant.
+        system_prompt = f"""You are Remindarin AI — a modern, intelligent productivity assistant.
 
 CURRENT DATE AND TIME: {current_full} ({current_weekday})
 
@@ -73,10 +73,11 @@ Be helpful, concise, friendly, and proactive."""
 
         reply = await call_nvidia_ai(user_message, system_prompt)
 
-        json_match = re.search(r'```json
+        # Extract JSON reminder block from the AI reply
+        json_match = re.search(r'```json\s*\n(.*?)\n\s*```', reply, re.DOTALL)
         if json_match:
             try:
-                json_str = json_match.group(1)
+                json_str = json_match.group(1).strip()
                 action_data = json.loads(json_str)
                 if action_data.get("action") == "create_reminder":
                     reminder = Reminder(
@@ -90,8 +91,9 @@ Be helpful, concise, friendly, and proactive."""
                     db.add(reminder)
                     db.commit()
                     db.refresh(reminder)
-                    
-                    reply = re.sub(r'```json\s*\{[\s\S]*?\}\s*```', '', reply, flags=re.IGNORECASE).strip()
+
+                    # Remove the JSON block from the display reply and add confirmation
+                    reply = re.sub(r'```json\s*\n.*?\n\s*```', '', reply, flags=re.DOTALL).strip()
                     reply += f"\n\n✅ **Reminder successfully created!**\n**ID:** {reminder.id} | {reminder.date or 'Today'} {reminder.time or ''} | {reminder.context}"
             except Exception:
                 pass
