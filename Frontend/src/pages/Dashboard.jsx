@@ -45,7 +45,7 @@ export default function Dashboard() {
   const [toast, setToast] = useState(null);
 
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [showInstallBanner, setShowInstallBanner] = useState(true);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
 
     const fetchDashboard = async () => {
     const token = getToken();
@@ -172,12 +172,14 @@ export default function Dashboard() {
   };
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      console.log('Install prompt not ready yet');
+      return;
+    }
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setShowInstallBanner(false);
-    }
+    console.log('User install choice:', outcome);
+    setShowInstallBanner(false);
     setDeferredPrompt(null);
   };
 
@@ -223,7 +225,7 @@ export default function Dashboard() {
 
     return (
     <div className="min-h-screen bg-background text-text-primary">
-      {showInstallBanner && (
+      {showInstallBanner && deferredPrompt && (
         <div className="fixed top-0 left-0 right-0 z-[999] bg-white dark:bg-foundation border-b border-border px-4 py-3 flex items-center gap-3 shadow-sm">
           <button 
             onClick={() => setShowInstallBanner(false)}
