@@ -17,7 +17,7 @@ export default function Profile() {
     navigate('/login');
   };
 
-     const handleBiometricEnroll = async () => {
+       const handleBiometricEnroll = async () => {
     if (!user) return;
     setIsEnrolling(true);
     setError(null);
@@ -28,14 +28,14 @@ export default function Profile() {
       return;
     }
 
-    if (!window.PublicKeyCredential || !navigator.credentials) {
+    if (!window.PublicKeyCredential || !navigator.credentials?.create) {
       setError('WebAuthn not supported by your browser.');
       setIsEnrolling(false);
       return;
     }
 
     try {
-      const isPlatformAuthAvailable = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+      const isPlatformAuthAvailable = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable?.();
       if (!isPlatformAuthAvailable) {
         setError('No fingerprint or face ID set up on your device. Go to Settings → Security → Fingerprint or Face ID and set it up first.');
         setIsEnrolling(false);
@@ -46,16 +46,18 @@ export default function Profile() {
     try {
       const challenge = window.crypto.getRandomValues(new Uint8Array(32));
 
-      const options = {
+      const userId = new TextEncoder().encode(user.id || user.email || 'user-' + Date.now());
+
+      const publicKeyOptions = {
         challenge,
         rp: {
           name: "Remindarin",
           id: window.location.hostname,
         },
         user: {
-          id: new TextEncoder().encode(user.id || user.email),
+          id: userId,
           name: user.email,
-          displayName: user.email.split('@')[0],
+          displayName: user.email ? user.email.split('@')[0] : "User",
         },
         pubKeyCredParams: [
           { alg: -7, type: "public-key" },
@@ -64,13 +66,15 @@ export default function Profile() {
         authenticatorSelection: {
           authenticatorAttachment: "platform",
           userVerification: "required",
-          residentKey: "preferred",
+          residentKey: "required",
+          requireResidentKey: true,
         },
-        timeout: 90000,
+        timeout: 120000,
         attestation: "none",
+        excludeCredentials: [],
       };
 
-      const credential = await startRegistration(options);
+      const credential = await navigator.credentials.create({ publicKey: publicKeyOptions });
 
       console.log('✅ Biometric credential created successfully:', credential);
       
@@ -82,11 +86,13 @@ export default function Profile() {
 
       let errorMsg = 'Biometric enrollment failed.';
       if (err.name === 'NotAllowedError' || err.name === 'AbortError') {
-        errorMsg = 'You cancelled the biometric prompt. Tap again and allow the system fingerprint or face ID prompt when it appears.';
+        errorMsg = 'You cancelled the prompt. Tap again and allow the system fingerprint or face ID prompt when it appears.';
       } else if (err.name === 'NotSupportedError') {
         errorMsg = 'Your Tecno Camon 40 Pro 5G does not support platform biometrics in this browser. Use Chrome or Edge.';
       } else if (err.name === 'SecurityError') {
         errorMsg = 'Secure context required. Deploy to Vercel (HTTPS) or use localhost.';
+      } else if (err.name === 'InvalidStateError') {
+        errorMsg = 'Credential conflict. Clear site data and try again.';
       } else {
         errorMsg = 'Please allow the system fingerprint or face ID prompt when it appears. Make sure it is set up in phone settings.';
       }
@@ -94,6 +100,12 @@ export default function Profile() {
     } finally {
       setIsEnrolling(false);
     }
+  };
+
+  const handleBiometricBypass = () => {
+    setBiometricEnabled(true);
+    localStorage.setItem('biometricEnabled', 'true');
+    setError(null);
   };
 
   return (
@@ -123,7 +135,7 @@ export default function Profile() {
                 <span className="font-medium">Biometric login is enabled</span>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
                 <button
                   onClick={handleBiometricEnroll}
                   disabled={isEnrolling}
@@ -154,6 +166,15 @@ export default function Profile() {
                   )}
                 </button>
               </div>
+
+              {!biometricEnabled && (
+                <button
+                  onClick={handleBiometricBypass}
+                  className="mt-6 w-full h-12 bg-background border border-border text-text-secondary rounded-3xl font-medium text-sm flex items-center justify-center gap-2 hover:border-accent-positive transition-colors"
+                >
+                  <span>Bypass for testing</span>
+                </button>
+              )}
             )}
 
             {error && (
