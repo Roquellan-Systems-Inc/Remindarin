@@ -9,6 +9,7 @@ import Insights from './pages/Insights';
 import Profile from './pages/Profile';
 import Signup from './pages/Auth/Signup';
 import Login from './pages/Auth/Login';
+import { useState, useEffect } from 'react';
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth();
@@ -16,9 +17,67 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
+  // PWA Install Banner (global - as you requested)
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    setShowInstallBanner(false);
+    setDeferredPrompt(null);
+  };
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBanner(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
   return (
     <AuthProvider>
       <Router>
+        {/* PWA Install Banner - appears at top of Dashboard (and other pages if needed) */}
+        {showInstallBanner && deferredPrompt && (
+          <div className="fixed top-0 left-0 right-0 z-[999] bg-white dark:bg-foundation border-b border-border px-4 py-3 flex items-center gap-3 shadow-sm">
+            <button 
+              onClick={() => setShowInstallBanner(false)}
+              className="text-text-secondary hover:text-text-primary p-1"
+            >
+              ✕
+            </button>
+            
+            <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center flex-shrink-0">
+              <span className="text-text-inverse font-bold text-2xl">R</span>
+            </div>
+            
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-base">Download the app</div>
+              <div className="flex items-center gap-1 text-sm">
+                <span className="text-accent-positive font-medium">4.9</span>
+                <span className="text-yellow-400">★★★★★</span>
+                <span className="text-text-secondary text-xs">• 2M+</span>
+              </div>
+            </div>
+            
+            <button 
+              onClick={handleInstallClick}
+              className="bg-primary text-text-inverse px-8 py-2 rounded-2xl font-semibold text-sm active:scale-95 transition-all"
+            >
+              Get
+            </button>
+          </div>
+        )}
+
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
@@ -31,7 +90,7 @@ function App() {
               </ProtectedRoute>
             } 
           />
-                   <Route 
+          <Route 
             path="/ai" 
             element={
               <ProtectedRoute>

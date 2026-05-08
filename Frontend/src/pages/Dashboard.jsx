@@ -44,9 +44,6 @@ export default function Dashboard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
 
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [showInstallBanner, setShowInstallBanner] = useState(false);
-
     const fetchDashboard = async () => {
     const token = getToken();
     if (!token) return;
@@ -167,31 +164,9 @@ export default function Dashboard() {
     setShowFocusModal(true);
   };
 
-    const handleSuggestionAdd = async (suggestion) => {
+const handleSuggestionAdd = async (suggestion) => {
     await addReminder(suggestion, '10:00', new Date().toISOString().split('T')[0], 'Work');
   };
-
-  const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    setShowInstallBanner(false);
-    setDeferredPrompt(null);
-  };
-
-  React.useEffect(() => {
-    const handleBeforeInstallPrompt = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowInstallBanner(true);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-  }, []);
 
   React.useEffect(() => {
     let interval;
@@ -223,40 +198,10 @@ export default function Dashboard() {
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
-    return (
+  return (
     <div className="min-h-screen bg-background text-text-primary">
-            {showInstallBanner && deferredPrompt && (
-        <div className="fixed top-0 left-0 right-0 z-[999] bg-white dark:bg-foundation border-b border-border px-4 py-3 flex items-center gap-3 shadow-sm">
-          <button 
-            onClick={() => setShowInstallBanner(false)}
-            className="text-text-secondary hover:text-text-primary p-1"
-          >
-            ✕
-          </button>
-          
-          <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center flex-shrink-0">
-            <span className="text-text-inverse font-bold text-2xl">R</span>
-          </div>
-          
-          <div className="flex-1 min-w-0">
-            <div className="font-semibold text-base">Download the app</div>
-            <div className="flex items-center gap-1 text-sm">
-              <span className="text-accent-positive font-medium">4.9</span>
-              <span className="text-yellow-400">★★★★★</span>
-              <span className="text-text-secondary text-xs">• 2M+</span>
-            </div>
-          </div>
-          
-          <button 
-            onClick={handleInstallClick}
-            className="bg-primary text-text-inverse px-8 py-2 rounded-2xl font-semibold text-sm active:scale-95 transition-all"
-          >
-            Get
-          </button>
-        </div>
-      )}
 
-      <div className={`max-w-7xl mx-auto px-6 ${showInstallBanner && deferredPrompt ? 'pt-20' : 'pt-8'} pb-16`}>
+      <div className="max-w-7xl mx-auto px-6 pt-8 pb-16">
         <div className="mb-8">
           <div className="text-4xl font-semibold tracking-tighter">Good morning, Ivan.</div>
           <div className="text-text-secondary mt-1">Here's your day at a glance.</div>
