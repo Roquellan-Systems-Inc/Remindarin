@@ -22,18 +22,15 @@ async def chat_with_ai(request: Request):
 
     db = SessionLocal()
     try:
-        # Save user message
         user_msg = ChatMessage(role="user", content=user_message)
         db.add(user_msg)
         db.commit()
         db.refresh(user_msg)
 
-        # Load conversation history
         history = db.query(ChatMessage)\
             .order_by(ChatMessage.created_at.asc())\
             .limit(20).all()
 
-        # Load active reminders for context
         reminders = db.query(Reminder)\
             .filter(Reminder.completed == False)\
             .order_by(Reminder.time.asc())\
@@ -80,9 +77,9 @@ If you create a reminder, end your response with this exact JSON block:
 
 Be helpful, concise, friendly, and proactive."""
 
-                reply = await call_nvidia_ai(user_message, system_prompt)
+        reply = await call_nvidia_ai(user_message, system_prompt)
 
-        json_match = re.search(r'```json\s*(.*?)\s*```', reply, re.DOTALL | re.IGNORECASE)
+        json_match = re.search(r'```json
         if json_match:
             try:
                 action_data = json.loads(json_match.group(1))
