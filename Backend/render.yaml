@@ -20,7 +20,7 @@ services:
       - key: VAPID_PRIVATE_KEY
         sync: false
       - key: VAPID_CLAIM_SUB
-        value: mailto:dev@remindarin.com
+        value: mailto:ivanlloydr15@gmail.com
       - key: CRON_SECRET
         sync: false
 
