@@ -8,7 +8,7 @@ import BottomNav from '../components/layout/BottomNav';
 export default function Profile() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [biometricEnabled, setBiometricEnabled] = useState(false);
+    const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [error, setError] = useState(null);
 
@@ -16,6 +16,11 @@ export default function Profile() {
     localStorage.removeItem('authToken');
     navigate('/login');
   };
+
+  React.useEffect(() => {
+    const saved = localStorage.getItem('biometricEnabled') === 'true';
+    setBiometricEnabled(saved);
+  }, []);
 
         const handleBiometricEnroll = async () => {
     if (!user) return;
@@ -149,13 +154,6 @@ export default function Profile() {
           <div className="text-accent-positive text-sm mt-1">✓ Verified</div>
           
              <div className="mt-10 border border-border rounded-3xl p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <Fingerprint className="text-accent-positive" size={28} />
-              <div>
-                <div className="font-semibold text-lg">Biometric Login</div>
-                <div className="text-text-secondary text-sm">Fingerprint</div>
-              </div>
-            </div>
 
             {biometricEnabled ? (
               <div className="flex flex-col gap-4">

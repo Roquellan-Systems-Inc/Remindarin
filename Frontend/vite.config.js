@@ -16,10 +16,4 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     assetsInlineLimit: 4096,
   },
-
-  optimizeDeps: {
-    esbuildOptions: {
-      target: 'esnext',
-    },
-  },
 })
