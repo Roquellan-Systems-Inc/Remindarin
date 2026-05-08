@@ -28,7 +28,7 @@ function App() {
     setDeferredPrompt(null);
   };
 
-  const handleBiometricVerify = async () => {
+    const handleBiometricVerify = async () => {
     const biometricEnabled = localStorage.getItem('biometricEnabled') === 'true';
     const savedCredentialStr = localStorage.getItem('webauthnCredential');
 
@@ -68,6 +68,11 @@ function App() {
       localStorage.setItem('biometricLastVerified', Date.now().toString());
     } catch (err) {
       console.error('Biometric auto-verify error:', err.name, err.message);
+
+      if (err.name === 'NotAllowedError' || err.name === 'AbortError') {
+        console.log('User cancelled biometric prompt → forcing app reload (cannot bypass)');
+        window.location.reload(true);
+      }
     }
   };
 
@@ -85,11 +90,10 @@ function App() {
     };
   }, []);
 
-  // Auto trigger direct fingerprint / face ID on every PWA open
   useEffect(() => {
     const timer = setTimeout(() => {
       handleBiometricVerify();
-    }, 800);
+    }, 600);
 
     return () => clearTimeout(timer);
   }, []);
