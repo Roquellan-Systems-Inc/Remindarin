@@ -19,8 +19,6 @@ function ProtectedRoute({ children }) {
 function App() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
-  const [showBiometricSheet, setShowBiometricSheet] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
@@ -30,18 +28,16 @@ function App() {
     setDeferredPrompt(null);
   };
 
-        const handleBiometricVerify = async () => {
-    setIsVerifying(true);
-    try {
-      const savedCredentialStr = localStorage.getItem('webauthnCredential');
-      if (!savedCredentialStr) {
-        console.warn('No stored biometric credential found');
-        return false;
-      }
+  const handleBiometricVerify = async () => {
+    const biometricEnabled = localStorage.getItem('biometricEnabled') === 'true';
+    const savedCredentialStr = localStorage.getItem('webauthnCredential');
 
+    if (!biometricEnabled || !savedCredentialStr) return;
+
+    try {
       const credentialData = JSON.parse(savedCredentialStr);
-      // Reconstruct rawId (WebAuthn stores it as ArrayBuffer → becomes object after JSON)
-      let rawIdArray;
+      let rawIdArray = null;
+
       if (credentialData.rawId) {
         if (credentialData.rawId instanceof Uint8Array || Array.isArray(credentialData.rawId)) {
           rawIdArray = new Uint8Array(credentialData.rawId);
@@ -55,6 +51,7 @@ function App() {
         rpId: window.location.hostname,
         userVerification: "required",
         timeout: 120000,
+        mediation: "required",
       };
 
       if (rawIdArray) {
@@ -65,25 +62,12 @@ function App() {
         }];
       }
 
-      const credential = await navigator.credentials.get({ publicKey: publicKeyRequest });
-
-      setShowBiometricSheet(false);
-      return true;
+      await navigator.credentials.get({ publicKey: publicKeyRequest });
+      
+      console.log('✅ Biometric verification successful');
+      localStorage.setItem('biometricLastVerified', Date.now().toString());
     } catch (err) {
-      console.error('Biometric verify error:', err.name, err.message);
-
-      if (err.name === 'NotAllowedError' || err.name === 'AbortError') {
-        return false;
-      }
-
-      if (err.name === 'NotFoundError' || err.name === 'InvalidStateError' || err.name === 'NotSupportedError') {
-        setShowBiometricSheet(false);
-        console.warn('No passkey available – biometric requirement skipped this time');
-      }
-
-      return false;
-    } finally {
-      setIsVerifying(false);
+      console.error('Biometric auto-verify error:', err.name, err.message);
     }
   };
 
@@ -101,24 +85,13 @@ function App() {
     };
   }, []);
 
-  // Biometric verification now runs EVERY time the PWA is opened (no 24h cooldown)
+  // Auto trigger direct fingerprint / face ID on every PWA open
   useEffect(() => {
-    const biometricEnabled = localStorage.getItem('biometricEnabled') === 'true';
-    const hasStoredCredential = !!localStorage.getItem('webauthnCredential');
+    const timer = setTimeout(() => {
+      handleBiometricVerify();
+    }, 800);
 
-    if (biometricEnabled && hasStoredCredential) {
-      setShowBiometricSheet(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    const biometricEnabled = localStorage.getItem('biometricEnabled') === 'true';
-    const lastVerified = localStorage.getItem('biometricLastVerified');
-    const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-
-    if (biometricEnabled && (!lastVerified || Date.now() - parseInt(lastVerified) > 1000 * 60 * 60 * 24)) {
-      setShowBiometricSheet(true);
-    }
+    return () => clearTimeout(timer);
   }, []);
 
   return (
@@ -208,35 +181,6 @@ function App() {
             } 
           />
         </Routes>
-
-        {showBiometricSheet && (
-          <div className="fixed inset-0 bg-black/60 z-[10000] flex items-end">
-            <div 
-              className="bg-foundation w-full max-w-3xl mx-auto rounded-t-3xl px-6 pt-6 pb-12 max-h-[85vh] overflow-hidden"
-              style={{ touchAction: 'none' }}
-            >
-              <div className="w-12 h-1.5 bg-border rounded-full mx-auto mb-8"></div>
-              <div className="text-center">
-                <div className="mx-auto w-16 h-16 bg-primary rounded-3xl flex items-center justify-center text-4xl mb-6">🔐</div>
-                <div className="font-semibold text-2xl tracking-tighter mb-2">Verify with Biometrics</div>
-                <div className="text-text-secondary mb-8">Your Tecno Camon 40 Pro 5G will show the native fingerprint or face ID prompt</div>
-                
-                <button
-                  onClick={async () => {
-                    const success = await handleBiometricVerify();
-                    if (!success) {
-                      alert('Biometric verification failed. Please try again.');
-                    }
-                  }}
-                  disabled={isVerifying}
-                  className="w-full h-14 bg-primary text-text-inverse rounded-3xl font-semibold flex items-center justify-center gap-3 hover:bg-primary/90 transition-colors"
-                >
-                  {isVerifying ? 'Verifying...' : 'Use Fingerprint / Face ID'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </Router>
     </AuthProvider>
   );
