@@ -167,18 +167,14 @@ export default function Dashboard() {
     setShowFocusModal(true);
   };
 
-  const handleSuggestionAdd = async (suggestion) => {
+    const handleSuggestionAdd = async (suggestion) => {
     await addReminder(suggestion, '10:00', new Date().toISOString().split('T')[0], 'Work');
   };
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) {
-      console.log('Install prompt not ready yet');
-      return;
-    }
+    if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    console.log('User install choice:', outcome);
     setShowInstallBanner(false);
     setDeferredPrompt(null);
   };
@@ -216,6 +212,10 @@ export default function Dashboard() {
     React.useEffect(() => {
     fetchDashboard();
   }, []);
+  
+    React.useEffect(() => {
+    fetchDashboard();
+  }, []);
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);
@@ -225,7 +225,7 @@ export default function Dashboard() {
 
     return (
     <div className="min-h-screen bg-background text-text-primary">
-      {showInstallBanner && deferredPrompt && (
+            {showInstallBanner && deferredPrompt && (
         <div className="fixed top-0 left-0 right-0 z-[999] bg-white dark:bg-foundation border-b border-border px-4 py-3 flex items-center gap-3 shadow-sm">
           <button 
             onClick={() => setShowInstallBanner(false)}
@@ -256,7 +256,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className={`max-w-7xl mx-auto px-6 ${showInstallBanner ? 'pt-20' : 'pt-8'} pb-16`}>
+      <div className={`max-w-7xl mx-auto px-6 ${showInstallBanner && deferredPrompt ? 'pt-20' : 'pt-8'} pb-16`}>
         <div className="mb-8">
           <div className="text-4xl font-semibold tracking-tighter">Good morning, Ivan.</div>
           <div className="text-text-secondary mt-1">Here's your day at a glance.</div>
