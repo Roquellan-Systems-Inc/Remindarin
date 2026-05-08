@@ -5,10 +5,11 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#F8FAFC",
-  "theme_color": "#1F2A44",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#0C0F12",
+  "theme_color": "#2B3A67",
   "orientation": "portrait-primary",
-    "icons": [
+  "icons": [
     {
       "src": "/remindarin.png",
       "sizes": "192x192",
@@ -30,5 +31,9 @@
       "id": "com.remindarin.app"
     }
   ],
+  "categories": ["productivity", "utilities"],
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
   "screenshots": []
 }
