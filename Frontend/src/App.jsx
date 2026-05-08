@@ -20,6 +20,7 @@ function App() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const { user } = useAuth();
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
@@ -111,18 +112,17 @@ function App() {
 
     return () => clearTimeout(timer);
   }, []);
-  
-    // Push Notifications (Remindarin PWA)
+
   const subscribeToPush = async () => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !user) return;
 
     try {
       const registration = await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
 
       if (!subscription) {
-        // Get VAPID public key from backend
-        const resp = await fetch('/api/v1/push/vapid-public-key');
+        const backendUrl = "https://accounts.remindarin.orbmiv.com";
+        const resp = await fetch(`${backendUrl}/api/v1/push/vapid-public-key`);
         const { public_key } = await resp.json();
 
         subscription = await registration.pushManager.subscribe({
@@ -132,7 +132,10 @@ function App() {
       }
 
       const token = localStorage.getItem('token');
-      await fetch('/api/v1/push/subscribe', {
+      if (!token) return;
+
+      const backendUrl = "https://accounts.remindarin.orbmiv.com";
+      await fetch(`${backendUrl}/api/v1/push/subscribe`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -141,7 +144,7 @@ function App() {
         body: JSON.stringify({ subscription })
       });
 
-      console.log('✅ Push subscription registered');
+      console.log('✅ Push subscription registered successfully');
     } catch (err) {
       console.error('Push subscription failed:', err);
     }
