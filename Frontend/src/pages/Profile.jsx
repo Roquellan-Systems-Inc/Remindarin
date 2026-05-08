@@ -78,7 +78,7 @@ export default function Profile() {
 
       console.log('✅ Biometric credential created successfully:', credential);
       
-      setBiometricEnabled(true);
+            setBiometricEnabled(true);
       localStorage.setItem('biometricEnabled', 'true');
       localStorage.setItem('webauthnCredential', JSON.stringify(credential));
     } catch (err) {
@@ -99,6 +99,27 @@ export default function Profile() {
       setError(errorMsg);
     } finally {
       setIsEnrolling(false);
+    }
+  };
+
+  const handleBiometricVerify = async () => {
+    if (!window.isSecureContext) return false;
+    if (!window.PublicKeyCredential || !navigator.credentials?.get) return false;
+
+    try {
+      const credential = await navigator.credentials.get({
+        publicKey: {
+          challenge: window.crypto.getRandomValues(new Uint8Array(32)),
+          rpId: window.location.hostname,
+          userVerification: "required",
+          timeout: 120000,
+        }
+      });
+      localStorage.setItem('biometricLastVerified', Date.now().toString());
+      return true;
+    } catch (err) {
+      console.error('Biometric verify error:', err.name, err.message);
+      return false;
     }
   };
 
