@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, create_engine
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, create_engine, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 import os
 from datetime import datetime
@@ -24,6 +24,24 @@ def get_db():
     finally:
         db.close()
 
+# Auto‑upgrade existing tables (add missing columns if needed)
+def auto_upgrade_tables():
+    """Ensure database schema matches the current models."""
+    with engine.begin() as conn:
+        # Add user_id column to reminders table if it doesn’t exist
+        conn.execute(text("""
+            ALTER TABLE reminders
+            ADD COLUMN IF NOT EXISTS user_id INTEGER
+        """))
+        # Add notified column if missing
+        conn.execute(text("""
+            ALTER TABLE reminders
+            ADD COLUMN IF NOT EXISTS notified BOOLEAN DEFAULT FALSE
+        """))
+
+# Run the upgrade once when the module is loaded
+auto_upgrade_tables()
+
 class Reminder(Base):
     __tablename__ = 'reminders'
     id = Column(Integer, primary_key=True, index=True)
@@ -35,14 +53,14 @@ class Reminder(Base):
     completed = Column(Boolean, default=False)
     notified = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-    
+
 class ChatMessage(Base):
     __tablename__ = 'chat_messages'
     id = Column(Integer, primary_key=True, index=True)
     role = Column(String, nullable=False)
     content = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-    
+
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, index=True)
@@ -57,7 +75,7 @@ class VerificationCode(Base):
     code = Column(String, nullable=False)
     expires_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-    
+
 class PushSubscription(Base):
     __tablename__ = 'push_subscriptions'
     id = Column(Integer, primary_key=True, index=True)
