@@ -51,7 +51,7 @@ async def chat_with_ai(request: Request):
         current_weekday = now.strftime("%A")
         current_full = now.strftime("%A, %B %d, %Y at %I:%M %p")
 
-        system_prompt = f"""You are Remindarin AI — a modern, intelligent productivity assistant.
+                system_prompt = f"""You are Remindarin AI — a modern, intelligent productivity assistant.
 
 CURRENT DATE AND TIME: {current_full} ({current_weekday})
 
@@ -80,9 +80,9 @@ If you create a reminder, end your response with this exact JSON block:
 
 Be helpful, concise, friendly, and proactive."""
 
-                reply = await call_nvidia_ai(user_message, system_prompt)
+        reply = await call_nvidia_ai(user_message, system_prompt)
 
-        json_match = re.search(r'```json\s*(\{.*?\})\s*```', reply, re.DOTALL | re.IGNORECASE)
+        json_match = re.search(r'```json
         if json_match:
             try:
                 action_data = json.loads(json_match.group(1))
@@ -102,7 +102,7 @@ Be helpful, concise, friendly, and proactive."""
                     reply = re.sub(r'```json\s*\{.*?\}\s*```', '', reply, flags=re.DOTALL | re.IGNORECASE).strip()
                     reply += f"\n\n✅ **Reminder successfully created!**\n**ID:** {reminder.id} | {reminder.date or 'Today'} {reminder.time or ''} | {reminder.context}"
             except Exception:
-                passss
+                pass
 
         # Save AI response
         assistant_msg = ChatMessage(role="assistant", content=reply)
