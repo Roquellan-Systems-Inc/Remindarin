@@ -168,15 +168,43 @@ function App() {
     }
   };
 
-  // Separate component to safely use useAuth inside AuthProvider
   function PushNotificationManager() {
     const { user } = useAuth();
+
+    const unsubscribeFromPush = async () => {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          await subscription.unsubscribe();
+          console.log('✅ Push subscription unsubscribed locally');
+        }
+
+        const token = localStorage.getItem('token');
+        if (token) {
+          const backendUrl = "https://accounts.remindarin.orbmiv.com";
+          await fetch(`${backendUrl}/api/v1/push/unsubscribe`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ endpoint: subscription?.endpoint })
+          });
+          console.log('✅ Push subscription removed from backend');
+        }
+      } catch (err) {
+        console.error('Unsubscribe failed:', err);
+      }
+    };
+
     useEffect(() => {
       if (user) {
         console.log('User logged in → starting push subscription');
         subscribeToPush();
       }
     }, [user]);
+
     return null;
   }
 
