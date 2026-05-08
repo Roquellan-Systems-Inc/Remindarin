@@ -17,7 +17,7 @@ export default function Profile() {
     navigate('/login');
   };
 
-        const handleBiometricEnroll = async () => {
+   const handleBiometricEnroll = async () => {
     if (!user) return;
     setIsEnrolling(true);
     setError(null);
