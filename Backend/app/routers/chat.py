@@ -44,14 +44,14 @@ async def chat_with_ai(request: Request):
             for r in reminders
         ]) or "No active reminders."
 
-        now = datetime.now()
+       now = datetime.now()
         tomorrow = (now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)).strftime("%Y-%m-%d")
         current_date = now.strftime("%Y-%m-%d")
         current_time = now.strftime("%H:%M")
         current_weekday = now.strftime("%A")
         current_full = now.strftime("%A, %B %d, %Y at %I:%M %p")
 
-                system_prompt = f"""You are Remindarin AI — a modern, intelligent productivity assistant.
+        system_prompt = f"""You are Remindarin AI — a modern, intelligent productivity assistant.
 
 CURRENT DATE AND TIME: {current_full} ({current_weekday})
 
