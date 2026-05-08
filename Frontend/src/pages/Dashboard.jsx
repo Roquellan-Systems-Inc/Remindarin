@@ -9,6 +9,7 @@ import DailyStats from '../components/dashboard/DailyStats';
 import SmartSuggestions from '../components/dashboard/SmartSuggestions';
 import QuickActions from '../components/dashboard/QuickActions';
 import BottomNav from '../components/layout/BottomNav';
+import { saveDashboardData, getDashboardData } from '../services/offlineDB';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ export default function Dashboard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
 
-    const fetchDashboard = async () => {
+  const fetchDashboard = async () => {
     const token = getToken();
     if (!token) return;
 
@@ -52,14 +53,37 @@ export default function Dashboard() {
       const res = await fetch(`${API_BASE}/api/v1/dashboard`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+
+      if (!res.ok) throw new Error('Network error');
+
       const data = await res.json();
-      setReminders(data.reminders || []);
-      setCompletedToday(data.completed_today || 0);
-      setStreak(data.streak || 12);
-      setEnergyLevel(data.energy_level || 'medium');
-      setWeather(data.weather || { temp: 29, condition: "Clear skies" });
+
+      const dashboardData = {
+        reminders: data.reminders || [],
+        completedToday: data.completed_today || 0,
+        streak: data.streak || 12,
+        energyLevel: data.energy_level || 'medium',
+        weather: data.weather || { temp: 29, condition: "Clear skies" }
+      };
+
+      await saveDashboardData(dashboardData);
+
+      setReminders(dashboardData.reminders);
+      setCompletedToday(dashboardData.completedToday);
+      setStreak(dashboardData.streak);
+      setEnergyLevel(dashboardData.energyLevel);
+      setWeather(dashboardData.weather);
     } catch (err) {
-      console.error("Failed to fetch dashboard", err);
+      console.error("Failed to fetch dashboard (offline or error)", err);
+
+      const cached = await getDashboardData();
+      if (cached) {
+        setReminders(cached.reminders || []);
+        setCompletedToday(cached.completedToday || 0);
+        setStreak(cached.streak || 12);
+        setEnergyLevel(cached.energyLevel || 'medium');
+        setWeather(cached.weather || { temp: 29, condition: "Clear skies" });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -168,7 +192,7 @@ const handleSuggestionAdd = async (suggestion) => {
     await addReminder(suggestion, '10:00', new Date().toISOString().split('T')[0], 'Work');
   };
 
-  React.useEffect(() => {
+    React.useEffect(() => {
     let interval;
     if (isFocusRunning && focusTime > 0) {
       interval = setInterval(() => {
@@ -183,8 +207,19 @@ const handleSuggestionAdd = async (suggestion) => {
     }
     return () => clearInterval(interval);
   }, [isFocusRunning, focusTime]);
-  
-    React.useEffect(() => {
+
+  React.useEffect(() => {
+    const loadCachedDashboard = async () => {
+      const cached = await getDashboardData();
+      if (cached) {
+        setReminders(cached.reminders || []);
+        setCompletedToday(cached.completedToday || 0);
+        setStreak(cached.streak || 12);
+        setEnergyLevel(cached.energyLevel || 'medium');
+        setWeather(cached.weather || { temp: 29, condition: "Clear skies" });
+      }
+    };
+    loadCachedDashboard();
     fetchDashboard();
   }, []);
 

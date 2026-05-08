@@ -1,5 +1,4 @@
 const CACHE_NAME = 'remindarin-v1';
-const OFFLINE_PAGE = '/index.html';
 
 const staticAssets = [
   '/',
@@ -11,9 +10,7 @@ const staticAssets = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(staticAssets);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(staticAssets))
   );
   self.skipWaiting();
 });
@@ -23,9 +20,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
+          if (cacheName !== CACHE_NAME) return caches.delete(cacheName);
         })
       );
     })
@@ -40,30 +35,41 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // SPA navigation → always serve index.html when offline
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match(OFFLINE_PAGE))
+      fetch(event.request).catch(() => caches.match('/index.html'))
     );
     return;
   }
 
+  // API routes → Stale-While-Revalidate (fast offline + fresh data when online)
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
+      caches.open(CACHE_NAME).then((cache) => {
+        return cache.match(event.request).then((cachedResponse) => {
+          const fetchPromise = fetch(event.request).then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              const responseToCache = networkResponse.clone();
+              cache.put(event.request, responseToCache);
+            }
+            return networkResponse;
+          }).catch(() => cachedResponse); // offline → return cached
+
+          return cachedResponse || fetchPromise;
+        });
+      })
     );
     return;
   }
 
+  // All other assets → Cache First
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) return cachedResponse;
-
-      return fetch(event.request).then((networkResponse) => {
+      return cachedResponse || fetch(event.request).then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200) {
           const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
         }
         return networkResponse;
       });
