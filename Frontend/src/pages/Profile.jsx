@@ -17,29 +17,33 @@ export default function Profile() {
     navigate('/login');
   };
 
-   const handleBiometricEnroll = async () => {
+     const handleBiometricEnroll = async () => {
     if (!user) return;
     setIsEnrolling(true);
     setError(null);
 
-    // 1. Secure context check (required for WebAuthn)
     if (!window.isSecureContext) {
-      setError('Secure context required');
+      setError('Biometric authentication requires HTTPS or localhost.');
       setIsEnrolling(false);
-      alert('❌ Biometric authentication requires HTTPS.\n\nOn your Tecno Camon 40 Pro 5G:\n1. Deploy to Vercel (HTTPS)\n2. Or test on http://localhost:5173\n\nNon-secure URLs are blocked by Android/Chrome for security.');
       return;
     }
 
-    // 2. WebAuthn support check
     if (!window.PublicKeyCredential || !navigator.credentials) {
-      setError('WebAuthn not supported');
+      setError('WebAuthn not supported by your browser.');
       setIsEnrolling(false);
-      alert('❌ Your browser does not support biometric login.\n\nOn Tecno Camon 40 Pro 5G use Chrome or Edge.');
       return;
     }
 
     try {
-      // Real production WebAuthn enrollment
+      const isPlatformAuthAvailable = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+      if (!isPlatformAuthAvailable) {
+        setError('No fingerprint or face ID set up on your device. Go to Settings → Security → Fingerprint or Face ID and set it up first.');
+        setIsEnrolling(false);
+        return;
+      }
+    } catch (e) {}
+
+    try {
       const challenge = window.crypto.getRandomValues(new Uint8Array(32));
 
       const options = {
@@ -62,7 +66,7 @@ export default function Profile() {
           userVerification: "required",
           residentKey: "preferred",
         },
-        timeout: 60000,
+        timeout: 90000,
         attestation: "none",
       };
 
@@ -73,19 +77,20 @@ export default function Profile() {
       setBiometricEnabled(true);
       localStorage.setItem('biometricEnabled', 'true');
       localStorage.setItem('webauthnCredential', JSON.stringify(credential));
-      
-      alert('🎉 Success! Face ID / Fingerprint is now enabled on your Tecno Camon 40 Pro 5G.');
     } catch (err) {
       console.error('Biometric error:', err.name, err.message);
-      setError(err.message || 'Unknown error');
 
+      let errorMsg = 'Biometric enrollment failed.';
       if (err.name === 'NotAllowedError' || err.name === 'AbortError') {
-        alert('❌ You cancelled the fingerprint prompt.');
+        errorMsg = 'You cancelled the biometric prompt. Tap again and allow the system fingerprint or face ID prompt when it appears.';
       } else if (err.name === 'NotSupportedError') {
-        alert('❌ Your Tecno Camon 40 Pro 5G does not support platform biometrics in this browser.\nTry Chrome or Edge.');
+        errorMsg = 'Your Tecno Camon 40 Pro 5G does not support platform biometrics in this browser. Use Chrome or Edge.';
+      } else if (err.name === 'SecurityError') {
+        errorMsg = 'Secure context required. Deploy to Vercel (HTTPS) or use localhost.';
       } else {
-        alert('❌ Biometric enrollment failed.\n\nMake sure:\n• Fingerprint is set up in your phone settings\n• You are on HTTPS (Vercel) or localhost\n• You allow the system fingerprint prompt');
+        errorMsg = 'Please allow the system fingerprint or face ID prompt when it appears. Make sure it is set up in phone settings.';
       }
+      setError(errorMsg);
     } finally {
       setIsEnrolling(false);
     }
@@ -119,24 +124,34 @@ export default function Profile() {
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-4">
-                {/* Fingerprint Button */}
                 <button
                   onClick={handleBiometricEnroll}
                   disabled={isEnrolling}
                   className="h-14 bg-background border border-border rounded-3xl font-medium flex flex-col items-center justify-center gap-1 hover:border-accent-positive transition-colors"
                 >
-                  <Fingerprint size={22} />
-                  <span className="text-sm">Fingerprint</span>
+                  {isEnrolling ? (
+                    <span className="text-sm">Preparing system prompt...</span>
+                  ) : (
+                    <>
+                      <Fingerprint size={22} />
+                      <span className="text-sm">Fingerprint</span>
+                    </>
+                  )}
                 </button>
 
-                {/* Face ID Button */}
                 <button
                   onClick={handleBiometricEnroll}
                   disabled={isEnrolling}
                   className="h-14 bg-background border border-border rounded-3xl font-medium flex flex-col items-center justify-center gap-1 hover:border-accent-positive transition-colors"
                 >
-                  <span className="text-2xl">👤</span>
-                  <span className="text-sm">Face ID</span>
+                  {isEnrolling ? (
+                    <span className="text-sm">Preparing system prompt...</span>
+                  ) : (
+                    <>
+                      <span className="text-2xl">👤</span>
+                      <span className="text-sm">Face ID</span>
+                    </>
+                  )}
                 </button>
               </div>
             )}
