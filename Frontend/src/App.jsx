@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { useState, useEffect } from 'react';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import AIChat from './pages/AIChat';
@@ -9,7 +10,6 @@ import Insights from './pages/Insights';
 import Profile from './pages/Profile';
 import Signup from './pages/Auth/Signup';
 import Login from './pages/Auth/Login';
-import { useState, useEffect } from 'react';
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth();
@@ -17,7 +17,7 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
-  // PWA Install Banner (global - as you requested)
+  // PWA Install Banner (global - appears at top of Dashboard)
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
 
@@ -46,7 +46,7 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        {/* PWA Install Banner - appears at top of Dashboard (and other pages if needed) */}
+        {/* PWA Install Banner - exactly like your screenshot */}
         {showInstallBanner && deferredPrompt && (
           <div className="fixed top-0 left-0 right-0 z-[999] bg-white dark:bg-foundation border-b border-border px-4 py-3 flex items-center gap-3 shadow-sm">
             <button 
