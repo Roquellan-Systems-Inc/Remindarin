@@ -8,7 +8,7 @@
   "background_color": "#F8FAFC",
   "theme_color": "#1F2A44",
   "orientation": "portrait-primary",
-  "icons": [
+    "icons": [
     {
       "src": "/remindarin.png",
       "sizes": "192x192",
@@ -22,6 +22,7 @@
       "purpose": "any maskable"
     }
   ],
+  "prefer_related_applications": true,
   "related_applications": [
     {
       "platform": "play",
