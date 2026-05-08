@@ -111,6 +111,47 @@ function App() {
 
     return () => clearTimeout(timer);
   }, []);
+  
+    // Push Notifications (Remindarin PWA)
+  const subscribeToPush = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      let subscription = await registration.pushManager.getSubscription();
+
+      if (!subscription) {
+        // Get VAPID public key from backend
+        const resp = await fetch('/api/v1/push/vapid-public-key');
+        const { public_key } = await resp.json();
+
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: public_key
+        });
+      }
+
+      const token = localStorage.getItem('token');
+      await fetch('/api/v1/push/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ subscription })
+      });
+
+      console.log('✅ Push subscription registered');
+    } catch (err) {
+      console.error('Push subscription failed:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      subscribeToPush();
+    }
+  }, [user]);
 
   return (
     <AuthProvider>

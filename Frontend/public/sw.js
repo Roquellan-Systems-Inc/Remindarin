@@ -76,3 +76,34 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
+// Push Notifications (PWA)
+self.addEventListener('push', function (event) {
+  const data = event.data ? event.data.json() : { title: '🔔 Remindarin', body: 'You have a new reminder' };
+
+  const options = {
+    body: data.body,
+    icon: data.icon || '/remindarin.png',
+    badge: data.badge || '/remindarin.png',
+    vibrate: [200, 100, 200],
+    data: data.data || {},
+    tag: 'remindarin-reminder',
+    requireInteraction: true
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
+
+self.addEventListener('notificationclick', function (event) {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      if (clientList.length > 0) {
+        return clientList[0].focus();
+      }
+      return clients.openWindow('/dashboard');
+    })
+  );
+});
