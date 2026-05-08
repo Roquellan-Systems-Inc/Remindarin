@@ -1,11 +1,12 @@
 {
+  "id": "com.remindarin.app",
   "name": "Remindarin — Smart Context-Aware Reminders",
   "short_name": "Remindarin",
   "description": "The smartest reminder that knows the right time, place, and energy level.",
-  "start_url": "/",
+  "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
+  "display_override": ["standalone", "minimal-ui", "fullscreen"],
   "background_color": "#0C0F12",
   "theme_color": "#2B3A67",
   "orientation": "portrait-primary",
@@ -35,5 +36,24 @@
   "launch_handler": {
     "client_mode": "navigate-existing"
   },
+  "shortcuts": [
+    {
+      "name": "Quick Capture",
+      "url": "/capture",
+      "description": "Add a new reminder instantly"
+    },
+    {
+      "name": "AI Assistant",
+      "url": "/ai",
+      "description": "Talk to Remindarin AI"
+    }
+  ],
+  "widgets": [
+    {
+      "name": "Today's Reminders",
+      "url": "/dashboard",
+      "description": "Live reminders widget"
+    }
+  ],
   "screenshots": []
 }
