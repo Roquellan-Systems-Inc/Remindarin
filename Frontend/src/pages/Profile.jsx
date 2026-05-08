@@ -17,16 +17,24 @@ export default function Profile() {
     navigate('/login');
   };
 
-    const handleBiometricEnroll = async () => {
+      const handleBiometricEnroll = async () => {
     if (!user) return;
     setIsEnrolling(true);
     setError(null);
 
-    // Check if WebAuthn is supported
-    if (!window.PublicKeyCredential) {
-      setError('Your browser does not support biometric authentication');
+    // 1. Check for secure context (WebAuthn requirement)
+    if (!window.isSecureContext) {
+      setError('Secure context required');
       setIsEnrolling(false);
-      alert('❌ Your browser does not support Face ID / Fingerprint. Try Chrome, Edge or Safari on a supported device.');
+      alert('❌ Biometric authentication requires a secure context.\n\nPlease test on:\n• HTTPS (Vercel deployment)\n• or http://localhost:5173\n\nNon-secure URLs are blocked by the browser for security.');
+      return;
+    }
+
+    // 2. Check if WebAuthn is supported by the browser
+    if (!window.PublicKeyCredential) {
+      setError('WebAuthn not supported');
+      setIsEnrolling(false);
+      alert('❌ Your browser does not support biometric authentication.\nTry Chrome, Edge, or Safari on a supported device.');
       return;
     }
 
@@ -66,7 +74,7 @@ export default function Profile() {
       localStorage.setItem('biometricEnabled', 'true');
       localStorage.setItem('webauthnCredential', JSON.stringify(credential));
       
-      alert('🎉 Biometric login successfully enabled!\n\nFace ID / Fingerprint is now active on this device.');
+      alert('🎉 Biometric login successfully enabled!\n\nFace ID / Fingerprint / Touch ID is now active on this device.');
     } catch (err) {
       console.error('Biometric enrollment failed:', err);
       setError(err.message || 'Unknown error');
@@ -76,7 +84,7 @@ export default function Profile() {
       } else if (err.name === 'NotSupportedError') {
         alert('❌ Your device does not support platform biometrics (Face ID / Fingerprint).');
       } else {
-        alert('❌ Biometric enrollment failed. Please make sure you are on HTTPS (or localhost) and your device supports it.');
+        alert('❌ Biometric enrollment failed.\n\nPlease make sure:\n• You are on HTTPS (Vercel) or localhost\n• Your device supports Face ID / Fingerprint\n• You allow the system prompt');
       }
     } finally {
       setIsEnrolling(false);
