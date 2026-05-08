@@ -42,7 +42,7 @@ async def chat_with_ai(request: Request):
         current_full = now.strftime("%A, %B %d, %Y at %I:%M %p")
         current_weekday = now.strftime("%A")
 
-        system_prompt = f"""You are Remindarin AI — a modern, intelligent productivity assistant.
+                system_prompt = f"""You are Remindarin AI — a modern, intelligent productivity assistant.
 
 CURRENT DATE AND TIME: {current_full} ({current_weekday})
 
