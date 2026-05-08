@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAuth } from '../context/AuthContext';
 import offlineDB from '../services/offlineDB';
+import AIChatHeader from '../components/layout/AIChatHeader';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://accounts.remindarin.orbmiv.com';
 
@@ -132,18 +133,7 @@ export default function AIChat() {
 
   return (
     <div className="min-h-screen bg-background text-text-primary flex flex-col">
-      <div className="fixed top-0 left-0 right-0 z-50 bg-foundation/95 backdrop-blur-lg border-b border-border">
-        <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => navigate('/dashboard')} 
-              className="p-2 text-text-secondary hover:text-text-primary transition-colors"
-            >
-              <ArrowLeft size={22} />
-            </button>
-          </div>
-        </div>
-      </div>
+      <AIChatHeader navigate={navigate} isOnline={navigator.onLine} />
 
       <div className="flex-1 max-w-3xl mx-auto w-full px-6 pt-20 pb-24 overflow-y-auto">
         {showWelcome && messages.length === 0 && (
@@ -277,24 +267,6 @@ export default function AIChat() {
           </button>
         </div>
         <div className="text-center text-xs text-text-secondary mt-3">Your conversations are private and encrypted</div>
-                {/* Offline + File System Access controls */}
-        <div className="flex justify-center gap-2 mt-2">
-          <button
-            onClick={async () => {
-              const history = await offlineDB.getChatHistory();
-              const markdown = history.map(m => `${m.role === 'user' ? 'You' : 'AI'}: ${m.text}`).join('\n\n');
-              const saved = await offlineDB.saveToLocalFile(markdown, `remindarin-chat-${new Date().toISOString().slice(0,10)}.md`);
-              if (saved) alert('✅ Chat saved to your device files!');
-            }}
-            className="text-xs px-4 py-2 bg-foundation border border-border rounded-2xl flex items-center gap-1 text-text-secondary hover:text-text-primary"
-          >
-            💾 Save as file
-          </button>
-          
-          <div className={`text-xs px-3 py-2 rounded-2xl flex items-center gap-1 ${navigator.onLine ? 'bg-accent-positive text-white' : 'bg-warning text-text-inverse'}`}>
-            {navigator.onLine ? '🟢 Online' : '📴 Offline AI'}
-          </div>
-        </div>
       </div>
     </div>
   );
