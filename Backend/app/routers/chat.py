@@ -82,12 +82,12 @@ Be helpful, concise, friendly, and proactive."""
 
         reply = await call_nvidia_ai(user_message, system_prompt)
 
-        json_match = re.search(r'```json\s*(\{.*?\})\s*```', reply, re.DOTALL | re.IGNORECASE)
+                json_match = re.search(r'```json\s*(\{.*?\})\s*```', reply, re.DOTALL | re.IGNORECASE)
         if json_match:
             try:
                 action_data = json.loads(json_match.group(1))
                 if action_data.get("action") == "create_reminder":
-                  reminder = Reminder(
+                    reminder = Reminder(
                         user_id=auth["user_id"],
                         text=action_data.get("text", ""),
                         time=action_data.get("time"),

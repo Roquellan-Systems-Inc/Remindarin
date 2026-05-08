@@ -84,9 +84,9 @@ async def complete_reminder(request):
     if isinstance(auth, JSONResponse):
         return auth
     reminder_id = int(request.path_params.get("reminder_id"))
-    db = SessionLocal()
+        db = SessionLocal()
     try:
-     reminder = db.query(Reminder).filter(
+        reminder = db.query(Reminder).filter(
             Reminder.id == reminder_id,
             Reminder.user_id == auth["user_id"]
         ).first()
@@ -102,9 +102,9 @@ async def get_dashboard(request):
     auth = await require_auth(request)
     if isinstance(auth, JSONResponse):
         return auth
-    db = SessionLocal()
+            db = SessionLocal()
     try:
-      reminders = db.query(Reminder).filter(
+        reminders = db.query(Reminder).filter(
             Reminder.completed == False,
             Reminder.user_id == auth["user_id"]
         ).order_by(Reminder.time.asc()).all()
