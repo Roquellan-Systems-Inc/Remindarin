@@ -75,12 +75,13 @@ If you create a reminder, end your response with this exact JSON block:
 
 Be helpful, concise, friendly, and proactive."""
 
-        reply = await call_nvidia_ai(user_message, system_prompt)
+  reply = await call_nvidia_ai(user_message, system_prompt)
 
-        json_match = re.search(r'```json
+        json_match = re.search(r'```json\s*(\{[\s\S]*?\})\s*```', reply, re.IGNORECASE)
         if json_match:
             try:
-                action_data = json.loads(json_match.group(1))
+                json_str = json_match.group(1)
+                action_data = json.loads(json_str)
                 if action_data.get("action") == "create_reminder":
                     reminder = Reminder(
                         user_id=auth["user_id"],
@@ -94,7 +95,7 @@ Be helpful, concise, friendly, and proactive."""
                     db.commit()
                     db.refresh(reminder)
                     
-                    reply = re.sub(r'```json\s*\{.*?\}\s*```', '', reply, flags=re.DOTALL | re.IGNORECASE).strip()
+                    reply = re.sub(r'```json\s*\{[\s\S]*?\}\s*```', '', reply, flags=re.IGNORECASE).strip()
                     reply += f"\n\n✅ **Reminder successfully created!**\n**ID:** {reminder.id} | {reminder.date or 'Today'} {reminder.time or ''} | {reminder.context}"
             except Exception:
                 pass
