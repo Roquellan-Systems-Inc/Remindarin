@@ -17,7 +17,7 @@ export default function Profile() {
     navigate('/login');
   };
 
-       const handleBiometricEnroll = async () => {
+        const handleBiometricEnroll = async () => {
     if (!user) return;
     setIsEnrolling(true);
     setError(null);
@@ -37,7 +37,7 @@ export default function Profile() {
     try {
       const isPlatformAuthAvailable = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable?.();
       if (!isPlatformAuthAvailable) {
-        setError('No fingerprint or face ID set up on your device. Go to Settings → Security → Fingerprint or Face ID and set it up first.');
+        setError('No fingerprint set up on your device. Go to Settings → Security → Fingerprint and set it up first.');
         setIsEnrolling(false);
         return;
       }
@@ -78,7 +78,7 @@ export default function Profile() {
 
       console.log('✅ Biometric credential created successfully:', credential);
       
-            setBiometricEnabled(true);
+      setBiometricEnabled(true);
       localStorage.setItem('biometricEnabled', 'true');
       localStorage.setItem('webauthnCredential', JSON.stringify(credential));
     } catch (err) {
@@ -86,20 +86,27 @@ export default function Profile() {
 
       let errorMsg = 'Biometric enrollment failed.';
       if (err.name === 'NotAllowedError' || err.name === 'AbortError') {
-        errorMsg = 'You cancelled the prompt. Tap again and allow the system fingerprint or face ID prompt when it appears.';
+        errorMsg = 'You cancelled the prompt. Tap again and allow the system fingerprint prompt when it appears.';
       } else if (err.name === 'NotSupportedError') {
-        errorMsg = 'Your Tecno Camon 40 Pro 5G does not support platform biometrics in this browser. Use Chrome or Edge.';
+        errorMsg = 'Your device does not support platform biometrics in this browser. Use Chrome or Edge.';
       } else if (err.name === 'SecurityError') {
         errorMsg = 'Secure context required. Deploy to Vercel (HTTPS) or use localhost.';
       } else if (err.name === 'InvalidStateError') {
         errorMsg = 'Credential conflict. Clear site data and try again.';
       } else {
-        errorMsg = 'Please allow the system fingerprint or face ID prompt when it appears. Make sure it is set up in phone settings.';
+        errorMsg = 'Please allow the system fingerprint prompt when it appears. Make sure it is set up in phone settings.';
       }
       setError(errorMsg);
     } finally {
       setIsEnrolling(false);
     }
+  };
+
+  const handleDisableBiometric = () => {
+    setBiometricEnabled(false);
+    localStorage.removeItem('biometricEnabled');
+    localStorage.removeItem('webauthnCredential');
+    setError(null);
   };
 
   const handleBiometricVerify = async () => {
@@ -150,62 +157,39 @@ export default function Profile() {
               </div>
             </div>
 
-                        {biometricEnabled ? (
-              <div className="flex items-center justify-center gap-2 bg-accent-positive/10 text-accent-positive rounded-3xl py-4 px-6 mb-6">
-                <ShieldCheck size={20} />
-                <span className="font-medium">Biometric login is enabled</span>
+{biometricEnabled ? (
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-center gap-2 bg-accent-positive/10 text-accent-positive rounded-3xl py-4 px-6">
+                  <ShieldCheck size={20} />
+                  <span className="font-medium">Fingerprint login is enabled</span>
+                </div>
+                <button
+                  onClick={handleDisableBiometric}
+                  className="w-full h-12 bg-background border border-border text-text-secondary rounded-3xl font-medium hover:border-red-500 hover:text-red-500 transition-colors"
+                >
+                  Disable Fingerprint Login
+                </button>
               </div>
             ) : (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    onClick={handleBiometricEnroll}
-                    disabled={isEnrolling}
-                    className="h-14 bg-background border border-border rounded-3xl font-medium flex flex-col items-center justify-center gap-1 hover:border-accent-positive transition-colors"
-                  >
-                    {isEnrolling ? (
-                      <span className="text-sm">Preparing system prompt...</span>
-                    ) : (
-                      <>
-                        <Fingerprint size={22} />
-                        <span className="text-sm">Fingerprint</span>
-                      </>
-                    )}
-                  </button>
-
-                  <button
-                    onClick={handleBiometricEnroll}
-                    disabled={isEnrolling}
-                    className="h-14 bg-background border border-border rounded-3xl font-medium flex flex-col items-center justify-center gap-1 hover:border-accent-positive transition-colors"
-                  >
-                    {isEnrolling ? (
-                      <span className="text-sm">Preparing system prompt...</span>
-                    ) : (
-                      <>
-                        <span className="text-2xl">👤</span>
-                        <span className="text-sm">Face ID</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                <button
-                  onClick={handleBiometricBypass}
-                  className="mt-6 w-full h-12 bg-background border border-border text-text-secondary rounded-3xl font-medium text-sm flex items-center justify-center gap-2 hover:border-accent-positive transition-colors"
-                >
-                  <span>Bypass for testing</span>
-                </button>
-              </>
+              <button
+                onClick={handleBiometricEnroll}
+                disabled={isEnrolling}
+                className="w-full h-14 bg-background border border-border rounded-3xl font-medium flex items-center justify-center gap-3 hover:border-accent-positive transition-colors"
+              >
+                {isEnrolling ? (
+                  <span className="text-sm">Preparing system prompt...</span>
+                ) : (
+                  <>
+                    <Fingerprint size={24} />
+                    <span className="text-base">Enable Fingerprint Login</span>
+                  </>
+                )}
+              </button>
             )}
 
             {error && (
               <p className="mt-4 text-red-500 text-sm text-center">{error}</p>
             )}
-
-            <p className="text-xs text-text-secondary text-center mt-6">
-              Your Tecno Camon 40 Pro 5G will show the native system prompt
-            </p>
-          </div>
 
           <div className="mt-12 space-y-6">
             <button className="w-full h-14 bg-background border border-border rounded-3xl font-medium flex items-center justify-center gap-3 hover:bg-white/5 transition-colors">
