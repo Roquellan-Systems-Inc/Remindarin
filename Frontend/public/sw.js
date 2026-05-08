@@ -61,8 +61,3 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
-
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'reminder-sync') {
-  }
-});
