@@ -4,6 +4,7 @@ import { ArrowLeft, Send, Bot } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAuth } from '../context/AuthContext';
+import offlineDB from '../services/offlineDB';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://accounts.remindarin.orbmiv.com';
 
@@ -43,22 +44,17 @@ export default function AIChat() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
-  const sendMessage = async () => {
+    const sendMessage = async () => {
     if (!input.trim() || isTyping) return;
 
-    const token = getToken();
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
     const userMsg = input.trim();
+    const isOnline = navigator.onLine;
 
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
 
-    setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
+    setMessages(prev => [...prev, { role: 'user', text: userMsg, timestamp: Date.now() }]);
     setInput('');
     setShowWelcome(false);
     setIsTyping(true);
@@ -67,32 +63,66 @@ export default function AIChat() {
     abortControllerRef.current = controller;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/chat`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`     // ← Auth header added
-        },
-        body: JSON.stringify({ message: userMsg }),
-        signal: controller.signal,
-      });
+      if (isOnline) {
+        const token = getToken();
+        if (!token) {
+          navigate('/login');
+          return;
+        }
 
-      if (response.status === 401) {
-        navigate('/login');
-        return;
+        const response = await fetch(`${API_BASE_URL}/api/v1/chat`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ message: userMsg }),
+          signal: controller.signal,
+        });
+
+        if (response.status === 401) {
+          navigate('/login');
+          return;
+        }
+
+        if (!response.ok) throw new Error('Failed to connect');
+
+        const data = await response.json();
+        const aiReply = data.reply || "I received your message.";
+        
+        setMessages(prev => [...prev, { role: 'ai', text: aiReply, timestamp: Date.now() }]);
+        
+        await offlineDB.cacheAIResponse(userMsg.toLowerCase(), aiReply);
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        const history = await offlineDB.getChatHistory();
+        let localReply = "I'm working offline. Here's what I remember from our last chats:";
+        
+        if (history.length > 0) {
+          const lastAI = history.filter(m => m.role === 'ai').slice(-3);
+          if (lastAI.length > 0) localReply += `\n\n${lastAI.map(m => m.text).join('\n• ')}`;
+        } else {
+          const lower = userMsg.toLowerCase();
+          if (lower.includes('reminder') || lower.includes('task')) localReply = "You can create reminders even offline. Try saying 'remind me to call mom at 5pm' later.";
+          else if (lower.includes('today') || lower.includes('plan')) localReply = "Offline mode: Your streak is safe. Focus on high-energy tasks first.";
+          else localReply = "Offline AI: Great question! I'll remember this for when we're back online.";
+        }
+        
+        setMessages(prev => [...prev, { role: 'ai', text: localReply, timestamp: Date.now(), offline: true }]);
       }
 
-      if (!response.ok) throw new Error('Failed to connect');
+      await offlineDB.saveChatMessage({ role: 'user', text: userMsg });
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage) await offlineDB.saveChatMessage(lastMessage);
 
-      const data = await response.json();
-      setMessages(prev => [...prev, { role: 'ai', text: data.reply || "I received your message." }]);
     } catch (err) {
       if (err.name === 'AbortError') return;
-
       console.error(err);
       setMessages(prev => [...prev, { 
         role: 'ai', 
-        text: "Sorry, I'm having trouble connecting right now. Please try again." 
+        text: "I'm offline but still here. What would you like to do?", 
+        offline: true 
       }]);
     } finally {
       setIsTyping(false);
@@ -247,6 +277,24 @@ export default function AIChat() {
           </button>
         </div>
         <div className="text-center text-xs text-text-secondary mt-3">Your conversations are private and encrypted</div>
+                {/* Offline + File System Access controls */}
+        <div className="flex justify-center gap-2 mt-2">
+          <button
+            onClick={async () => {
+              const history = await offlineDB.getChatHistory();
+              const markdown = history.map(m => `${m.role === 'user' ? 'You' : 'AI'}: ${m.text}`).join('\n\n');
+              const saved = await offlineDB.saveToLocalFile(markdown, `remindarin-chat-${new Date().toISOString().slice(0,10)}.md`);
+              if (saved) alert('✅ Chat saved to your device files!');
+            }}
+            className="text-xs px-4 py-2 bg-foundation border border-border rounded-2xl flex items-center gap-1 text-text-secondary hover:text-text-primary"
+          >
+            💾 Save as file
+          </button>
+          
+          <div className={`text-xs px-3 py-2 rounded-2xl flex items-center gap-1 ${navigator.onLine ? 'bg-accent-positive text-white' : 'bg-warning text-text-inverse'}`}>
+            {navigator.onLine ? '🟢 Online' : '📴 Offline AI'}
+          </div>
+        </div>
       </div>
     </div>
   );
