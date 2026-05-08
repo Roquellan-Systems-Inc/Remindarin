@@ -148,16 +148,16 @@ export default function Profile() {
           <div className="font-semibold text-2xl">{user?.email || 'User'}</div>
           <div className="text-accent-positive text-sm mt-1">✓ Verified</div>
           
-          <div className="mt-10 border border-border rounded-3xl p-6">
+             <div className="mt-10 border border-border rounded-3xl p-6">
             <div className="flex items-center gap-3 mb-6">
               <Fingerprint className="text-accent-positive" size={28} />
               <div>
                 <div className="font-semibold text-lg">Biometric Login</div>
-                <div className="text-text-secondary text-sm">Face ID • Fingerprint • Touch ID</div>
+                <div className="text-text-secondary text-sm">Fingerprint</div>
               </div>
             </div>
 
-{biometricEnabled ? (
+            {biometricEnabled ? (
               <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-center gap-2 bg-accent-positive/10 text-accent-positive rounded-3xl py-4 px-6">
                   <ShieldCheck size={20} />
@@ -190,6 +190,7 @@ export default function Profile() {
             {error && (
               <p className="mt-4 text-red-500 text-sm text-center">{error}</p>
             )}
+          </div>
 
           <div className="mt-12 space-y-6">
             <button className="w-full h-14 bg-background border border-border rounded-3xl font-medium flex items-center justify-center gap-3 hover:bg-white/5 transition-colors">
