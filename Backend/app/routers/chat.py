@@ -44,7 +44,7 @@ async def chat_with_ai(request: Request):
             for r in reminders
         ]) or "No active reminders."
 
-       now = datetime.now()
+        now = datetime.now()
         tomorrow = (now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)).strftime("%Y-%m-%d")
         current_date = now.strftime("%Y-%m-%d")
         current_time = now.strftime("%H:%M")
