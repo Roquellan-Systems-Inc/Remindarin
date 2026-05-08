@@ -20,7 +20,6 @@ function App() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
-  const { user } = useAuth();
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
@@ -113,8 +112,9 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Push Notifications (Remindarin PWA) — safe inside AuthProvider
   const subscribeToPush = async () => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !user) return;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
 
     try {
       const registration = await navigator.serviceWorker.ready;
@@ -150,14 +150,18 @@ function App() {
     }
   };
 
-  useEffect(() => {
-    if (user) {
-      subscribeToPush();
-    }
-  }, [user]);
+  // Separate component to safely use useAuth inside AuthProvider
+  function PushNotificationManager() {
+    const { user } = useAuth();
+    useEffect(() => {
+      if (user) subscribeToPush();
+    }, [user]);
+    return null;
+  }
 
   return (
     <AuthProvider>
+      <PushNotificationManager />
       <Router>
        {showInstallBanner && deferredPrompt && (
           <div className="fixed top-0 left-0 right-0 z-[999] bg-white dark:bg-foundation border-b border-border px-4 py-3 flex items-center gap-3 shadow-sm">
