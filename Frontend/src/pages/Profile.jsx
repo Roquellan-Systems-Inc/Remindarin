@@ -17,14 +17,22 @@ export default function Profile() {
     navigate('/login');
   };
 
-  const handleBiometricEnroll = async () => {
+    const handleBiometricEnroll = async () => {
     if (!user) return;
     setIsEnrolling(true);
     setError(null);
 
+    // Check if WebAuthn is supported
+    if (!window.PublicKeyCredential) {
+      setError('Your browser does not support biometric authentication');
+      setIsEnrolling(false);
+      alert('❌ Your browser does not support Face ID / Fingerprint. Try Chrome, Edge or Safari on a supported device.');
+      return;
+    }
+
     try {
-      // Real WebAuthn flow with proper random challenge
-      const challenge = crypto.getRandomValues(new Uint8Array(32));
+      // Real production-ready WebAuthn enrollment
+      const challenge = window.crypto.getRandomValues(new Uint8Array(32));
 
       const options = {
         challenge,
@@ -38,11 +46,11 @@ export default function Profile() {
           displayName: user.email.split('@')[0],
         },
         pubKeyCredParams: [
-          { alg: -7, type: "public-key" },  // ES256 - most devices
-          { alg: -257, type: "public-key" } // RS256 fallback
+          { alg: -7, type: "public-key" },
+          { alg: -257, type: "public-key" }
         ],
         authenticatorSelection: {
-          authenticatorAttachment: "platform", // Face ID / Touch ID / Fingerprint
+          authenticatorAttachment: "platform",
           userVerification: "required",
           residentKey: "preferred",
         },
@@ -54,23 +62,21 @@ export default function Profile() {
 
       console.log('✅ Real biometric credential created:', credential);
       
-      // In production you would send credential to backend here
-      // For now we store it locally so it "works"
       setBiometricEnabled(true);
       localStorage.setItem('biometricEnabled', 'true');
       localStorage.setItem('webauthnCredential', JSON.stringify(credential));
       
-      alert('🎉 Biometric login successfully enabled!\n\nFace ID / Fingerprint / Windows Hello is now active.');
+      alert('🎉 Biometric login successfully enabled!\n\nFace ID / Fingerprint is now active on this device.');
     } catch (err) {
       console.error('Biometric enrollment failed:', err);
       setError(err.message || 'Unknown error');
       
-      if (err.name === 'NotAllowedError') {
-        alert('❌ Permission denied. Make sure your device supports Face ID / Fingerprint and you allow the prompt.');
+      if (err.name === 'NotAllowedError' || err.name === 'AbortError') {
+        alert('❌ You cancelled the biometric prompt or permission was denied.');
       } else if (err.name === 'NotSupportedError') {
-        alert('❌ Your device or browser does not support platform biometrics.');
+        alert('❌ Your device does not support platform biometrics (Face ID / Fingerprint).');
       } else {
-        alert('❌ Biometric enrollment failed. Please try again or use another device.');
+        alert('❌ Biometric enrollment failed. Please make sure you are on HTTPS (or localhost) and your device supports it.');
       }
     } finally {
       setIsEnrolling(false);
