@@ -29,7 +29,7 @@ async def list_reminders(request):
         return auth
     db = SessionLocal()
     try:
-     reminders = db.query(Reminder).filter(
+        reminders = db.query(Reminder).filter(
             Reminder.completed == False,
             Reminder.user_id == auth["user_id"]
         ).order_by(Reminder.time.asc()).all()
@@ -83,8 +83,8 @@ async def complete_reminder(request):
     auth = await require_auth(request)
     if isinstance(auth, JSONResponse):
         return auth
-    reminder_id = int(request.path_params.get("reminder_id"))
-        db = SessionLocal()
+     reminder_id = int(request.path_params.get("reminder_id"))
+    db = SessionLocal()
     try:
         reminder = db.query(Reminder).filter(
             Reminder.id == reminder_id,
@@ -99,10 +99,10 @@ async def complete_reminder(request):
         db.close()
 
 async def get_dashboard(request):
-    auth = await require_auth(request)
+   auth = await require_auth(request)
     if isinstance(auth, JSONResponse):
         return auth
-            db = SessionLocal()
+    db = SessionLocal()
     try:
         reminders = db.query(Reminder).filter(
             Reminder.completed == False,
