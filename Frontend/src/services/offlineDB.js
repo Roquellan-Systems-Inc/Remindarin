@@ -1,5 +1,5 @@
 const DB_NAME = 'remindarin-offline';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbInstance = null;
 
@@ -9,7 +9,7 @@ const openDB = () => {
     
     const request = indexedDB.open(DB_NAME, DB_VERSION);
     
-    request.onupgradeneeded = (event) => {
+        request.onupgradeneeded = (event) => {
       const db = event.target.result;
       
       // Chat history store
@@ -23,7 +23,7 @@ const openDB = () => {
         db.createObjectStore('files', { keyPath: 'name' });
       }
 
-      // Dashboard cache store (for full offline support)
+      // Dashboard cache store (for full offline support of UpcomingReminders)
       if (!db.objectStoreNames.contains('dashboard')) {
         db.createObjectStore('dashboard', { keyPath: 'id' });
       }
