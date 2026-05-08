@@ -29,7 +29,7 @@ function App() {
     setDeferredPrompt(null);
   };
 
-    const handleBiometricVerify = async () => {
+  const handleBiometricVerify = async () => {
     const biometricEnabled = localStorage.getItem('biometricEnabled') === 'true';
     const savedCredentialStr = localStorage.getItem('webauthnCredential');
 
@@ -112,7 +112,7 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Push Notifications (Remindarin PWA) — safe inside AuthProvider
+  // Push Notifications (Remindarin PWA) – safe inside AuthProvider
   const subscribeToPush = async () => {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
       console.warn('Push API not supported');
@@ -120,13 +120,6 @@ function App() {
     }
 
     try {
-      // Explicitly request permission (this triggers the native "Allow notifications?" prompt)
-      if (Notification.permission === 'default') {
-        const permission = await Notification.requestPermission();
-        console.log('Notification permission:', permission);
-        if (permission !== 'granted') return;
-      }
-
       const registration = await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
 
@@ -170,42 +163,46 @@ function App() {
 
   function PushNotificationManager() {
     const { user } = useAuth();
-
-    const unsubscribeFromPush = async () => {
-      try {
-        const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
-        if (subscription) {
-          await subscription.unsubscribe();
-          console.log('✅ Push subscription unsubscribed locally');
-        }
-
-        const token = localStorage.getItem('token');
-        if (token) {
-          const backendUrl = "https://accounts.remindarin.orbmiv.com";
-          await fetch(`${backendUrl}/api/v1/push/unsubscribe`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ endpoint: subscription?.endpoint })
-          });
-          console.log('✅ Push subscription removed from backend');
-        }
-      } catch (err) {
-        console.error('Unsubscribe failed:', err);
-      }
-    };
+    const [askPermission, setAskPermission] = useState(false);
 
     useEffect(() => {
-      if (user) {
-        console.log('User logged in → starting push subscription');
-        subscribeToPush();
+      // Show the "Enable notifications" banner only if user is logged in
+      // and the browser hasn't been asked yet (permission === 'default').
+      if (user && Notification.permission === 'default') {
+        setAskPermission(true);
+      } else {
+        setAskPermission(false);
       }
     }, [user]);
 
-    return null;
+    const handleEnableClick = async () => {
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          // Now that the user granted permission, perform the subscription
+          await subscribeToPush();
+        }
+      } finally {
+        setAskPermission(false);
+      }
+    };
+
+    if (!askPermission) return null;
+
+    return (
+      <div className="fixed bottom-4 left-4 right-4 z-[999] bg-white dark:bg-foundation border border-border rounded-2xl shadow-lg p-4 flex items-center gap-3 animate-slide-up">
+        <span className="text-2xl">🔔</span>
+        <div className="flex-1 text-sm text-text-primary">
+          Get notified when a reminder is due.
+        </div>
+        <button
+          onClick={handleEnableClick}
+          className="bg-primary text-text-inverse px-4 py-2 rounded-xl font-semibold text-sm active:scale-95 transition-all"
+        >
+          Enable
+        </button>
+      </div>
+    );
   }
 
   return (
