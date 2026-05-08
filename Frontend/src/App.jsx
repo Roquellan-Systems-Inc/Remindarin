@@ -114,15 +114,26 @@ function App() {
 
   // Push Notifications (Remindarin PWA) — safe inside AuthProvider
   const subscribeToPush = async () => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      console.warn('Push API not supported');
+      return;
+    }
 
     try {
+      // Explicitly request permission (this triggers the native "Allow notifications?" prompt)
+      if (Notification.permission === 'default') {
+        const permission = await Notification.requestPermission();
+        console.log('Notification permission:', permission);
+        if (permission !== 'granted') return;
+      }
+
       const registration = await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
 
       if (!subscription) {
         const backendUrl = "https://accounts.remindarin.orbmiv.com";
         const resp = await fetch(`${backendUrl}/api/v1/push/vapid-public-key`);
+        if (!resp.ok) throw new Error('Failed to fetch VAPID key');
         const { public_key } = await resp.json();
 
         subscription = await registration.pushManager.subscribe({
@@ -132,10 +143,13 @@ function App() {
       }
 
       const token = localStorage.getItem('token');
-      if (!token) return;
+      if (!token) {
+        console.warn('No auth token found for push subscription');
+        return;
+      }
 
       const backendUrl = "https://accounts.remindarin.orbmiv.com";
-      await fetch(`${backendUrl}/api/v1/push/subscribe`, {
+      const res = await fetch(`${backendUrl}/api/v1/push/subscribe`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -144,7 +158,11 @@ function App() {
         body: JSON.stringify({ subscription })
       });
 
-      console.log('✅ Push subscription registered successfully');
+      if (res.ok) {
+        console.log('✅ Push subscription registered successfully with backend');
+      } else {
+        console.error('Failed to register subscription with backend');
+      }
     } catch (err) {
       console.error('Push subscription failed:', err);
     }
@@ -154,7 +172,10 @@ function App() {
   function PushNotificationManager() {
     const { user } = useAuth();
     useEffect(() => {
-      if (user) subscribeToPush();
+      if (user) {
+        console.log('User logged in → starting push subscription');
+        subscribeToPush();
+      }
     }, [user]);
     return null;
   }
