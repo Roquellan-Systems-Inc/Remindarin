@@ -187,10 +187,6 @@ const handleSuggestionAdd = async (suggestion) => {
     React.useEffect(() => {
     fetchDashboard();
   }, []);
-  
-    React.useEffect(() => {
-    fetchDashboard();
-  }, []);
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);
