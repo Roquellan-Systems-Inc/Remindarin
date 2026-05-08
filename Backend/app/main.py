@@ -6,8 +6,9 @@ from .routers.chat import chat_with_ai
 from .routers.reminders import parse_reminder, list_reminders, create_reminder, complete_reminder, get_dashboard
 from .routers.auth import auth_router, require_auth
 from .routers.suggestions import get_smart_suggestions
-from .routers.push import push_router
+from .routers.push import push_router, process_due_reminders
 from .database import Base, engine
+import asyncio
 
 async def root(request):
     return JSONResponse({
@@ -37,6 +38,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+async def scheduler_loop():
+    """Send push notifications for reminders that are due right now."""
+    while True:
+        try:
+            sent = await process_due_reminders()
+            if sent:
+                print(f"📨 Sent {sent} push notification(s)")
+        except Exception as e:
+            print(f"Scheduler error: {e}")
+        await asyncio.sleep(30)
+
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(scheduler_loop())
 
 if __name__ == "__main__":
     import uvicorn
