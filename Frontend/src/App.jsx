@@ -30,7 +30,7 @@ function App() {
     setDeferredPrompt(null);
   };
 
-    const handleBiometricVerify = async () => {
+        const handleBiometricVerify = async () => {
     setIsVerifying(true);
     try {
       const savedCredentialStr = localStorage.getItem('webauthnCredential');
@@ -67,7 +67,6 @@ function App() {
 
       const credential = await navigator.credentials.get({ publicKey: publicKeyRequest });
 
-      localStorage.setItem('biometricLastVerified', Date.now().toString());
       setShowBiometricSheet(false);
       return true;
     } catch (err) {
@@ -102,12 +101,12 @@ function App() {
     };
   }, []);
 
+  // Biometric verification now runs EVERY time the PWA is opened (no 24h cooldown)
   useEffect(() => {
     const biometricEnabled = localStorage.getItem('biometricEnabled') === 'true';
     const hasStoredCredential = !!localStorage.getItem('webauthnCredential');
-    const lastVerified = localStorage.getItem('biometricLastVerified');
 
-    if (biometricEnabled && hasStoredCredential && (!lastVerified || Date.now() - parseInt(lastVerified) > 1000 * 60 * 60 * 24)) {
+    if (biometricEnabled && hasStoredCredential) {
       setShowBiometricSheet(true);
     }
   }, []);
