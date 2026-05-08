@@ -80,9 +80,9 @@ If you create a reminder, end your response with this exact JSON block:
 
 Be helpful, concise, friendly, and proactive."""
 
-        reply = await call_nvidia_ai(user_message, system_prompt)
+                reply = await call_nvidia_ai(user_message, system_prompt)
 
-        json_match = re.search(r'```json
+        json_match = re.search(r'```json\s*(.*?)\s*```', reply, re.DOTALL | re.IGNORECASE)
         if json_match:
             try:
                 action_data = json.loads(json_match.group(1))
@@ -104,7 +104,6 @@ Be helpful, concise, friendly, and proactive."""
             except Exception:
                 pass
 
-        # Save AI response
         assistant_msg = ChatMessage(role="assistant", content=reply)
         db.add(assistant_msg)
         db.commit()
