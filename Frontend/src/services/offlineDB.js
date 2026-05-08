@@ -22,6 +22,11 @@ const openDB = () => {
       if (!db.objectStoreNames.contains('files')) {
         db.createObjectStore('files', { keyPath: 'name' });
       }
+
+      // Dashboard cache store (for full offline support)
+      if (!db.objectStoreNames.contains('dashboard')) {
+        db.createObjectStore('dashboard', { keyPath: 'id' });
+      }
     };
     
     request.onsuccess = (event) => {
@@ -57,6 +62,32 @@ export const getChatHistory = async () => {
   });
 };
 
+// Dashboard offline caching (IndexedDB - production ready)
+export const saveDashboardData = async (data) => {
+  const db = await openDB();
+  const tx = db.transaction('dashboard', 'readwrite');
+  const store = tx.objectStore('dashboard');
+  
+  const dashboardEntry = {
+    id: 'main',
+    ...data,
+    timestamp: Date.now()
+  };
+  
+  await store.put(dashboardEntry);
+  return tx.complete;
+};
+
+export const getDashboardData = async () => {
+  const db = await openDB();
+  const tx = db.transaction('dashboard', 'readonly');
+  const store = tx.objectStore('dashboard');
+  return new Promise((resolve) => {
+    const request = store.get('main');
+    request.onsuccess = () => resolve(request.result || null);
+  });
+};
+
 // File System Access API wrapper
 export const saveToLocalFile = async (content, suggestedName = 'remindarin-chat.md') => {
   try {
@@ -83,4 +114,11 @@ export const cacheAIResponse = async (key, response) => {
   await cache.put(`/ai-cache/${key}`, new Response(JSON.stringify(response)));
 };
 
-export default { saveChatMessage, getChatHistory, saveToLocalFile, cacheAIResponse };
+export default { 
+  saveChatMessage, 
+  getChatHistory, 
+  saveDashboardData, 
+  getDashboardData, 
+  saveToLocalFile, 
+  cacheAIResponse 
+};
