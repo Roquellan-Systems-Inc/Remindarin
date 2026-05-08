@@ -29,7 +29,10 @@ async def list_reminders(request):
         return auth
     db = SessionLocal()
     try:
-        reminders = db.query(Reminder).filter(Reminder.completed == False).order_by(Reminder.time.asc()).all()
+     reminders = db.query(Reminder).filter(
+            Reminder.completed == False,
+            Reminder.user_id == auth["user_id"]
+        ).order_by(Reminder.time.asc()).all()
         reminder_list = [
             {
                 "id": r.id,
@@ -55,10 +58,12 @@ async def create_reminder(request):
     db = SessionLocal()
     try:
         reminder = Reminder(
+            user_id=auth["user_id"],
             text=body.get("text"),
             time=body.get("time"),
             date=body.get("date"),
-            context=body.get("context", "Work")
+            context=body.get("context", "Work"),
+            notified=False
         )
         db.add(reminder)
         db.commit()
@@ -72,7 +77,7 @@ async def create_reminder(request):
             "completed": reminder.completed
         }})
     finally:
-        db.close()
+        db.close())
 
 async def complete_reminder(request):
     auth = await require_auth(request)
@@ -81,7 +86,10 @@ async def complete_reminder(request):
     reminder_id = int(request.path_params.get("reminder_id"))
     db = SessionLocal()
     try:
-        reminder = db.query(Reminder).filter(Reminder.id == reminder_id).first()
+     reminder = db.query(Reminder).filter(
+            Reminder.id == reminder_id,
+            Reminder.user_id == auth["user_id"]
+        ).first()
         if not reminder:
             return JSONResponse({"success": False, "error": "Reminder not found"}, status_code=404)
         reminder.completed = True
@@ -96,7 +104,10 @@ async def get_dashboard(request):
         return auth
     db = SessionLocal()
     try:
-        reminders = db.query(Reminder).filter(Reminder.completed == False).order_by(Reminder.time.asc()).all()
+      reminders = db.query(Reminder).filter(
+            Reminder.completed == False,
+            Reminder.user_id == auth["user_id"]
+        ).order_by(Reminder.time.asc()).all()
         reminder_list = [
             {
                 "id": r.id,

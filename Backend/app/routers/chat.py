@@ -87,11 +87,13 @@ Be helpful, concise, friendly, and proactive."""
             try:
                 action_data = json.loads(json_match.group(1))
                 if action_data.get("action") == "create_reminder":
-                    reminder = Reminder(
+                  reminder = Reminder(
+                        user_id=auth["user_id"],
                         text=action_data.get("text", ""),
                         time=action_data.get("time"),
                         date=action_data.get("date"),
-                        context=action_data.get("context", "Work")
+                        context=action_data.get("context", "Work"),
+                        notified=False
                     )
                     db.add(reminder)
                     db.commit()

@@ -56,3 +56,11 @@ class VerificationCode(Base):
     expires_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     
+class PushSubscription(Base):
+    __tablename__ = 'push_subscriptions'
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    endpoint = Column(String(512), unique=True, nullable=False)
+    p256dh = Column(String(255), nullable=False)
+    auth = Column(String(255), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
