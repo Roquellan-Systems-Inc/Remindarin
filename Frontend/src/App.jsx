@@ -17,11 +17,11 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [showInstallBanner, setShowInstallBanner] = useState(false);
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
-  const [isInstalled, setIsInstalled] = useState(false);
-
+  const [deferredPrompt, setDeferredPrompt] = useState(window.__deferredPrompt);
+const [showInstallBanner, setShowInstallBanner] = useState(!!window.__deferredPrompt);
+const [isInstalled, setIsInstalled] = useState(
+  window.matchMedia('(display-mode: standalone)').matches
+);
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
@@ -78,39 +78,26 @@ function App() {
     }
   };
 
-        useEffect(() => {
-    const checkIfInstalled = () => {
-      const standalone = window.matchMedia('(display-mode: standalone)').matches || 
-                        (window.navigator.standalone === true);
-      if (standalone) {
-        setIsInstalled(true);
-        setShowInstallBanner(false);
-        setDeferredPrompt(null);
-      }
-    };
-    checkIfInstalled();
+useEffect(() => {
+  const handleCaptured = () => {
+    setDeferredPrompt(window.__deferredPrompt);
+    setShowInstallBanner(!!window.__deferredPrompt);
+  };
 
-    const handleBeforeInstallPrompt = (e) => {
-      if (isInstalled) return;
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowInstallBanner(true);
-    };
+  const handleInstalled = () => {
+    setShowInstallBanner(false);
+    setDeferredPrompt(null);
+    setIsInstalled(true);
+  };
 
-    const handleAppInstalled = () => {
-      setShowInstallBanner(false);
-      setDeferredPrompt(null);
-      setIsInstalled(true);
-    };
+  window.addEventListener('deferredpromptcaptured', handleCaptured);
+  window.addEventListener('appinstalled', handleInstalled);
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', handleAppInstalled);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
-    };
-  }, [isInstalled]);
+  return () => {
+    window.removeEventListener('deferredpromptcaptured', handleCaptured);
+    window.removeEventListener('appinstalled', handleInstalled);
+  };
+}, []);
   
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
