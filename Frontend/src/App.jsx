@@ -22,6 +22,7 @@ const [showInstallBanner, setShowInstallBanner] = useState(!!window.__deferredPr
 const [isInstalled, setIsInstalled] = useState(
   window.matchMedia('(display-mode: standalone)').matches
 );
+const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
