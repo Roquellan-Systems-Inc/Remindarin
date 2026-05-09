@@ -21,6 +21,7 @@ const [deferredPrompt, setDeferredPrompt] = useState(null);
 const [showInstallBanner, setShowInstallBanner] = useState(false);
 const [isInstallClosing, setIsInstallClosing] = useState(false);
 const [showCustomInstallBanner, setShowCustomInstallBanner] = useState(false);
+const [isCustomClosing, setIsCustomClosing] = useState(false);
 const [isOffline, setIsOffline] = useState(!navigator.onLine);
 const [isInstalled, setIsInstalled] = useState(false);
 
@@ -118,7 +119,7 @@ const [isInstalled, setIsInstalled] = useState(false);
     };
   }, [isInstalled]);
   
-    useEffect(() => {
+        useEffect(() => {
     const timer = setTimeout(() => {
       const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
       if (!deferredPrompt && !isInstalled && !standalone && !showInstallBanner) {
@@ -127,7 +128,7 @@ const [isInstalled, setIsInstalled] = useState(false);
           setShowCustomInstallBanner(true);
         }
       }
-    }, 4500);
+    }, 2500);
     return () => clearTimeout(timer);
   }, [deferredPrompt, isInstalled, showInstallBanner]);
   
@@ -309,8 +310,8 @@ const [isInstalled, setIsInstalled] = useState(false);
         </div>
       )}
 
-      {showCustomInstallBanner && (
-        <div className={`fixed inset-x-0 bottom-0 z-[9999] bg-white dark:bg-foundation border-t border-border rounded-t-3xl shadow-2xl flex flex-col transition-all duration-300 ease-out ${isInstallClosing ? 'translate-y-full' : 'translate-y-0'}`}>
+            {showCustomInstallBanner && (
+        <div className={`fixed inset-x-0 bottom-0 z-[9999] bg-white dark:bg-foundation border-t border-border rounded-t-3xl shadow-2xl flex flex-col transition-all duration-300 ease-out ${isCustomClosing ? 'translate-y-full' : 'translate-y-0'}`}>
           <div className="mx-auto w-12 h-1 bg-text-secondary/30 dark:bg-text-secondary/30 rounded-full mt-3 mb-6 flex-shrink-0"></div>
           <div className="px-6 pb-8 flex flex-col gap-6">
             <div className="flex items-start gap-4">
@@ -328,15 +329,15 @@ const [isInstalled, setIsInstalled] = useState(false);
             </div>
             <button
               onClick={() => {
-                setIsInstallClosing(true);
+                setIsCustomClosing(true);
                 setTimeout(() => {
                   setShowCustomInstallBanner(false);
-                  setIsInstallClosing(false);
+                  setIsCustomClosing(false);
                 }, 300);
               }}
               className="w-full bg-primary text-text-inverse py-4 rounded-2xl font-semibold text-base active:scale-[0.97] transition-all min-h-[44px]"
             >
-              Got it
+              Get it
             </button>
           </div>
         </div>
