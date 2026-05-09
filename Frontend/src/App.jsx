@@ -20,6 +20,7 @@ function App() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [isInstalled, setIsInstalled] = useState(false);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
@@ -77,8 +78,20 @@ function App() {
     }
   };
 
-    useEffect(() => {
+        useEffect(() => {
+    const checkIfInstalled = () => {
+      const standalone = window.matchMedia('(display-mode: standalone)').matches || 
+                        (window.navigator.standalone === true);
+      if (standalone) {
+        setIsInstalled(true);
+        setShowInstallBanner(false);
+        setDeferredPrompt(null);
+      }
+    };
+    checkIfInstalled();
+
     const handleBeforeInstallPrompt = (e) => {
+      if (isInstalled) return;
       e.preventDefault();
       setDeferredPrompt(e);
       setShowInstallBanner(true);
@@ -87,6 +100,7 @@ function App() {
     const handleAppInstalled = () => {
       setShowInstallBanner(false);
       setDeferredPrompt(null);
+      setIsInstalled(true);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -96,7 +110,7 @@ function App() {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
-  }, []);
+  }, [isInstalled]);
   
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -238,42 +252,43 @@ function App() {
     );
   }
 
-  return (
+    return (
     <AuthProvider>
       <PushNotificationManager />
-      <Router>
-               {showInstallBanner && deferredPrompt && (
-          <div className="fixed inset-x-0 bottom-0 z-[999] bg-white dark:bg-foundation border-t border-border rounded-t-3xl shadow-2xl flex flex-col">
-            <div className="mx-auto w-12 h-1 bg-text-secondary/30 dark:bg-text-secondary/30 rounded-full mt-3 mb-6 flex-shrink-0"></div>
-            <div className="px-6 pb-8 flex flex-col gap-6">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center flex-shrink-0">
-                  <span className="text-text-inverse font-bold text-2xl">R</span>
-                </div>
-                <div className="flex-1">
-                  <div className="font-semibold text-lg text-text-primary">Install Remindarin</div>
-                  <div className="text-sm text-text-secondary mt-1">Add to your home screen for instant access, offline reminders, and faster performance.</div>
-                </div>
+      
+      {showInstallBanner && deferredPrompt && !isInstalled && (
+        <div className="fixed inset-x-0 bottom-0 z-[9999] bg-white dark:bg-foundation border-t border-border rounded-t-3xl shadow-2xl flex flex-col">
+          <div className="mx-auto w-12 h-1 bg-text-secondary/30 dark:bg-text-secondary/30 rounded-full mt-3 mb-6 flex-shrink-0"></div>
+          <div className="px-6 pb-8 flex flex-col gap-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center flex-shrink-0">
+                <span className="text-text-inverse font-bold text-2xl">R</span>
               </div>
-              <button
-                onClick={handleInstallClick}
-                className="w-full bg-primary text-text-inverse py-4 rounded-2xl font-semibold text-base active:scale-[0.97] transition-all min-h-[44px]"
-              >
-                Install App
-              </button>
-              <button
-                onClick={() => {
-                  setShowInstallBanner(false);
-                  setDeferredPrompt(null);
-                }}
-                className="w-full text-text-secondary font-medium py-3 text-base active:scale-[0.97] transition-all"
-              >
-                Not now
-              </button>
+              <div className="flex-1">
+                <div className="font-semibold text-lg text-text-primary">Install Remindarin</div>
+                <div className="text-sm text-text-secondary mt-1">Add to your home screen for instant access, offline reminders, and faster performance.</div>
+              </div>
             </div>
+            <button
+              onClick={handleInstallClick}
+              className="w-full bg-primary text-text-inverse py-4 rounded-2xl font-semibold text-base active:scale-[0.97] transition-all min-h-[44px]"
+            >
+              Install App
+            </button>
+            <button
+              onClick={() => {
+                setShowInstallBanner(false);
+                setDeferredPrompt(null);
+              }}
+              className="w-full text-text-secondary font-medium py-3 text-base active:scale-[0.97] transition-all"
+            >
+              Not now
+            </button>
           </div>
-        )}
+        </div>
+      )}
 
+      <Router>
         {isOffline && (
           <div className="fixed top-0 left-0 right-0 z-[998] bg-warning/90 text-text-inverse px-4 py-2 text-center text-sm font-medium">
             ⚠️ Offline • App works with cached data
