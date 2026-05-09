@@ -18,9 +18,10 @@ function ProtectedRoute({ children }) {
 
 function App() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [showInstallBanner, setShowInstallBanner] = useState(false);
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
-  const [isInstalled, setIsInstalled] = useState(false);
+const [showInstallBanner, setShowInstallBanner] = useState(false);
+const [isInstallClosing, setIsInstallClosing] = useState(false);
+const [isOffline, setIsOffline] = useState(!navigator.onLine);
+const [isInstalled, setIsInstalled] = useState(false);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
@@ -253,11 +254,9 @@ function App() {
   }
 
     return (
-    <AuthProvider>
-      <PushNotificationManager />
-      
+        <AuthProvider>
       {showInstallBanner && deferredPrompt && !isInstalled && (
-        <div className="fixed inset-x-0 bottom-0 z-[9999] bg-white dark:bg-foundation border-t border-border rounded-t-3xl shadow-2xl flex flex-col">
+        <div className={`fixed inset-x-0 bottom-0 z-[9999] bg-white dark:bg-foundation border-t border-border rounded-t-3xl shadow-2xl flex flex-col transition-all duration-300 ease-out ${isInstallClosing ? 'translate-y-full' : 'translate-y-0'}`}>
           <div className="mx-auto w-12 h-1 bg-text-secondary/30 dark:bg-text-secondary/30 rounded-full mt-3 mb-6 flex-shrink-0"></div>
           <div className="px-6 pb-8 flex flex-col gap-6">
             <div className="flex items-start gap-4">
@@ -277,8 +276,12 @@ function App() {
             </button>
             <button
               onClick={() => {
-                setShowInstallBanner(false);
-                setDeferredPrompt(null);
+                setIsInstallClosing(true);
+                setTimeout(() => {
+                  setShowInstallBanner(false);
+                  setIsInstallClosing(false);
+                  setDeferredPrompt(null);
+                }, 300);
               }}
               className="w-full text-text-secondary font-medium py-3 text-base active:scale-[0.97] transition-all"
             >
@@ -287,6 +290,8 @@ function App() {
           </div>
         </div>
       )}
+
+      <PushNotificationManager />
 
       <Router>
         {isOffline && (
