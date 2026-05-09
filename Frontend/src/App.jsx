@@ -342,7 +342,7 @@ const [isInstalled, setIsInstalled] = useState(false);
         </div>
       )}
 
-      <PushNotificationManager />>
+      <PushNotificationManager />
 
       <Router>
         {isOffline && (
