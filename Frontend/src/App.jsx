@@ -77,17 +77,24 @@ function App() {
     }
   };
 
-  useEffect(() => {
+    useEffect(() => {
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
       setShowInstallBanner(true);
     };
 
+    const handleAppInstalled = () => {
+      setShowInstallBanner(false);
+      setDeferredPrompt(null);
+    };
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
   
@@ -235,34 +242,35 @@ function App() {
     <AuthProvider>
       <PushNotificationManager />
       <Router>
-       {showInstallBanner && deferredPrompt && (
-          <div className="fixed top-0 left-0 right-0 z-[999] bg-white dark:bg-foundation border-b border-border px-4 py-3 flex items-center gap-3 shadow-sm">
-            <button 
-              onClick={() => setShowInstallBanner(false)}
-              className="text-text-secondary hover:text-text-primary p-1"
-            >
-              ✕
-            </button>
-            
-            <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center flex-shrink-0">
-              <span className="text-text-inverse font-bold text-2xl">R</span>
-            </div>
-            
-            <div className="flex-1 min-w-0">
-              <div className="font-semibold text-base">Download the app</div>
-              <div className="flex items-center gap-1 text-sm">
-                <span className="text-accent-positive font-medium">4.9</span>
-                <span className="text-yellow-400">★★★★★</span>
-                <span className="text-text-secondary text-xs">• 2M+</span>
+               {showInstallBanner && deferredPrompt && (
+          <div className="fixed inset-x-0 bottom-0 z-[999] bg-white dark:bg-foundation border-t border-border rounded-t-3xl shadow-2xl flex flex-col">
+            <div className="mx-auto w-12 h-1 bg-text-secondary/30 dark:bg-text-secondary/30 rounded-full mt-3 mb-6 flex-shrink-0"></div>
+            <div className="px-6 pb-8 flex flex-col gap-6">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center flex-shrink-0">
+                  <span className="text-text-inverse font-bold text-2xl">R</span>
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-lg text-text-primary">Install Remindarin</div>
+                  <div className="text-sm text-text-secondary mt-1">Add to your home screen for instant access, offline reminders, and faster performance.</div>
+                </div>
               </div>
+              <button
+                onClick={handleInstallClick}
+                className="w-full bg-primary text-text-inverse py-4 rounded-2xl font-semibold text-base active:scale-[0.97] transition-all min-h-[44px]"
+              >
+                Install App
+              </button>
+              <button
+                onClick={() => {
+                  setShowInstallBanner(false);
+                  setDeferredPrompt(null);
+                }}
+                className="w-full text-text-secondary font-medium py-3 text-base active:scale-[0.97] transition-all"
+              >
+                Not now
+              </button>
             </div>
-            
-            <button 
-              onClick={handleInstallClick}
-              className="bg-primary text-text-inverse px-8 py-2 rounded-2xl font-semibold text-sm active:scale-95 transition-all"
-            >
-              Get
-            </button>
           </div>
         )}
 
