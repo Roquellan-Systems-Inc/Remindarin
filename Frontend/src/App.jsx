@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import AIChat from './pages/AIChat';
@@ -17,18 +17,22 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
-  const [deferredPrompt, setDeferredPrompt] = useState(window.__deferredPrompt);
-const [showInstallBanner, setShowInstallBanner] = useState(!!window.__deferredPrompt);
-const [isInstalled, setIsInstalled] = useState(
-  window.matchMedia('(display-mode: standalone)').matches
-);
+    const deferredPromptRef = useRef(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(
+    window.matchMedia('(display-mode: standalone)').matches
+  );
 const [isOffline, setIsOffline] = useState(!navigator.onLine);
-  const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
+    const handleInstallClick = async () => {
+    const promptEvent = deferredPromptRef.current;
+    if (!promptEvent) return;
+    promptEvent.prompt();
+    const { outcome } = await promptEvent.userChoice;
     setShowInstallBanner(false);
-    setDeferredPrompt(null);
+    deferredPromptRef.current = null;
+    if (outcome === 'accepted') {
+      setIsInstalled(true);
+    }
   };
 
   const handleBiometricVerify = async () => {
@@ -79,26 +83,32 @@ const [isOffline, setIsOffline] = useState(!navigator.onLine);
     }
   };
 
-useEffect(() => {
-  const handleCaptured = () => {
-    setDeferredPrompt(window.__deferredPrompt);
-    setShowInstallBanner(!!window.__deferredPrompt);
-  };
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      deferredPromptRef.current = e;
+      setShowInstallBanner(true);
+    };
 
-  const handleInstalled = () => {
-    setShowInstallBanner(false);
-    setDeferredPrompt(null);
-    setIsInstalled(true);
-  };
+    const handleAppInstalled = () => {
+      setShowInstallBanner(false);
+      deferredPromptRef.current = null;
+      setIsInstalled(true);
+    };
 
-  window.addEventListener('deferredpromptcaptured', handleCaptured);
-  window.addEventListener('appinstalled', handleInstalled);
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
 
-  return () => {
-    window.removeEventListener('deferredpromptcaptured', handleCaptured);
-    window.removeEventListener('appinstalled', handleInstalled);
-  };
-}, []);
+    if (window.__deferredPrompt) {
+      deferredPromptRef.current = window.__deferredPrompt;
+      setShowInstallBanner(true);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
   
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -244,7 +254,7 @@ useEffect(() => {
     <AuthProvider>
       <PushNotificationManager />
       
-      {showInstallBanner && deferredPrompt && !isInstalled && (
+      {showInstallBanner && deferredPromptRef.current && !isInstalled && (
         <div className="fixed inset-x-0 bottom-0 z-[9999] bg-white dark:bg-foundation border-t border-border rounded-t-3xl shadow-2xl flex flex-col">
           <div className="mx-auto w-12 h-1 bg-text-secondary/30 dark:bg-text-secondary/30 rounded-full mt-3 mb-6 flex-shrink-0"></div>
           <div className="px-6 pb-8 flex flex-col gap-6">
