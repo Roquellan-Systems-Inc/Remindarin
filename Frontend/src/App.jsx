@@ -17,9 +17,10 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
+const [deferredPrompt, setDeferredPrompt] = useState(null);
 const [showInstallBanner, setShowInstallBanner] = useState(false);
 const [isInstallClosing, setIsInstallClosing] = useState(false);
+const [showCustomInstallBanner, setShowCustomInstallBanner] = useState(false);
 const [isOffline, setIsOffline] = useState(!navigator.onLine);
 const [isInstalled, setIsInstalled] = useState(false);
 
@@ -27,8 +28,12 @@ const [isInstalled, setIsInstalled] = useState(false);
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    setShowInstallBanner(false);
-    setDeferredPrompt(null);
+    setIsInstallClosing(true);
+    setTimeout(() => {
+      setShowInstallBanner(false);
+      setIsInstallClosing(false);
+      setDeferredPrompt(null);
+    }, 300);
   };
 
   const handleBiometricVerify = async () => {
@@ -112,6 +117,19 @@ const [isInstalled, setIsInstalled] = useState(false);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, [isInstalled]);
+  
+    useEffect(() => {
+    const timer = setTimeout(() => {
+      const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      if (!deferredPrompt && !isInstalled && !standalone && !showInstallBanner) {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        if (isIOS || !('BeforeInstallPromptEvent' in window)) {
+          setShowCustomInstallBanner(true);
+        }
+      }
+    }, 4500);
+    return () => clearTimeout(timer);
+  }, [deferredPrompt, isInstalled, showInstallBanner]);
   
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -274,7 +292,7 @@ const [isInstalled, setIsInstalled] = useState(false);
             >
               Install App
             </button>
-            <button
+                        <button
               onClick={() => {
                 setIsInstallClosing(true);
                 setTimeout(() => {
@@ -291,7 +309,40 @@ const [isInstalled, setIsInstalled] = useState(false);
         </div>
       )}
 
-      <PushNotificationManager />
+      {showCustomInstallBanner && (
+        <div className={`fixed inset-x-0 bottom-0 z-[9999] bg-white dark:bg-foundation border-t border-border rounded-t-3xl shadow-2xl flex flex-col transition-all duration-300 ease-out ${isInstallClosing ? 'translate-y-full' : 'translate-y-0'}`}>
+          <div className="mx-auto w-12 h-1 bg-text-secondary/30 dark:bg-text-secondary/30 rounded-full mt-3 mb-6 flex-shrink-0"></div>
+          <div className="px-6 pb-8 flex flex-col gap-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center flex-shrink-0">
+                <span className="text-text-inverse font-bold text-2xl">R</span>
+              </div>
+              <div className="flex-1">
+                <div className="font-semibold text-lg text-text-primary">Install Remindarin</div>
+                <div className="text-sm text-text-secondary mt-1">
+                  {/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
+                    ? "Tap the Share button at the bottom of Safari → Scroll down → Add to Home Screen"
+                    : "Open your browser menu (⋮) → Select 'Install app' or 'Add to Home Screen'"}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setIsInstallClosing(true);
+                setTimeout(() => {
+                  setShowCustomInstallBanner(false);
+                  setIsInstallClosing(false);
+                }, 300);
+              }}
+              className="w-full bg-primary text-text-inverse py-4 rounded-2xl font-semibold text-base active:scale-[0.97] transition-all min-h-[44px]"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
+
+      <PushNotificationManager />>
 
       <Router>
         {isOffline && (
