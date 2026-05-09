@@ -274,71 +274,77 @@ const [isInstalled, setIsInstalled] = useState(false);
 
     return (
         <AuthProvider>
-      {showInstallBanner && deferredPrompt && !isInstalled && (
-        <div className={`fixed inset-x-0 bottom-0 z-[9999] bg-white dark:bg-foundation border-t border-border rounded-t-3xl shadow-2xl flex flex-col transition-all duration-300 ease-out ${isInstallClosing ? 'translate-y-full' : 'translate-y-0'}`}>
-          <div className="mx-auto w-12 h-1 bg-text-secondary/30 dark:bg-text-secondary/30 rounded-full mt-3 mb-6 flex-shrink-0"></div>
-          <div className="px-6 pb-8 flex flex-col gap-6">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center flex-shrink-0">
-                <span className="text-text-inverse font-bold text-2xl">R</span>
-              </div>
-              <div className="flex-1">
-                <div className="font-semibold text-lg text-text-primary">Install Remindarin</div>
-                <div className="text-sm text-text-secondary mt-1">Add to your home screen for instant access, offline reminders, and faster performance.</div>
-              </div>
+            {showInstallBanner && deferredPrompt && !isInstalled && (
+        <div className={`fixed inset-x-0 top-0 z-[9999] bg-white dark:bg-foundation border-b border-border shadow-2xl flex items-center px-4 py-3 transition-all duration-300 ease-out ${isInstallClosing ? '-translate-y-full' : 'translate-y-0'}`}>
+          <div className="flex items-center gap-3 w-full max-w-5xl mx-auto">
+            <img src="/remindarin.png" alt="Remindarin" className="w-11 h-11 rounded-2xl flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-base text-text-primary">Remindarin</div>
+              <div className="text-xs text-text-secondary -mt-0.5">Smart context-aware reminders</div>
             </div>
-            <button
-              onClick={handleInstallClick}
-              className="w-full bg-primary text-text-inverse py-4 rounded-2xl font-semibold text-base active:scale-[0.97] transition-all min-h-[44px]"
-            >
-              Install App
-            </button>
-                        <button
-              onClick={() => {
-                setIsInstallClosing(true);
-                setTimeout(() => {
-                  setShowInstallBanner(false);
-                  setIsInstallClosing(false);
-                  setDeferredPrompt(null);
-                }, 300);
-              }}
-              className="w-full text-text-secondary font-medium py-3 text-base active:scale-[0.97] transition-all"
-            >
-              Not now
-            </button>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={handleInstallClick}
+                className="bg-primary text-text-inverse px-6 py-2 rounded-2xl font-semibold text-sm active:scale-[0.97] transition-all min-h-[44px]"
+              >
+                Get
+              </button>
+              <button
+                onClick={() => {
+                  setIsInstallClosing(true);
+                  setTimeout(() => {
+                    setShowInstallBanner(false);
+                    setIsInstallClosing(false);
+                    setDeferredPrompt(null);
+                  }, 300);
+                }}
+                className="text-text-secondary font-medium px-3 py-2 text-sm active:scale-[0.97] transition-all"
+              >
+                Not now
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-            {showCustomInstallBanner && (
-        <div className={`fixed inset-x-0 bottom-0 z-[9999] bg-white dark:bg-foundation border-t border-border rounded-t-3xl shadow-2xl flex flex-col transition-all duration-300 ease-out ${isCustomClosing ? 'translate-y-full' : 'translate-y-0'}`}>
-          <div className="mx-auto w-12 h-1 bg-text-secondary/30 dark:bg-text-secondary/30 rounded-full mt-3 mb-6 flex-shrink-0"></div>
-          <div className="px-6 pb-8 flex flex-col gap-6">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center flex-shrink-0">
-                <span className="text-text-inverse font-bold text-2xl">R</span>
-              </div>
-              <div className="flex-1">
-                <div className="font-semibold text-lg text-text-primary">Install Remindarin</div>
-                <div className="text-sm text-text-secondary mt-1">
-                  {/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
-                    ? "Tap the Share button at the bottom of Safari → Scroll down → Add to Home Screen"
-                    : "Open your browser menu (⋮) → Select 'Install app' or 'Add to Home Screen'"}
-                </div>
+                  {showCustomInstallBanner && (
+        <div className={`fixed inset-x-0 top-0 z-[9999] bg-white dark:bg-foundation border-b border-border shadow-2xl flex items-center px-4 py-3 transition-all duration-300 ease-out ${isCustomClosing ? '-translate-y-full' : 'translate-y-0'}`}>
+          <div className="flex items-center gap-3 w-full max-w-5xl mx-auto">
+            <img src="/remindarin.png" alt="Remindarin" className="w-11 h-11 rounded-2xl flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-base text-text-primary">Remindarin</div>
+              <div className="text-xs text-text-secondary -mt-0.5">
+                {/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
+                  ? "Tap Share → Add to Home Screen"
+                  : "Menu → Install app"}
               </div>
             </div>
-            <button
-              onClick={() => {
-                setIsCustomClosing(true);
-                setTimeout(() => {
-                  setShowCustomInstallBanner(false);
-                  setIsCustomClosing(false);
-                }, 300);
-              }}
-              className="w-full bg-primary text-text-inverse py-4 rounded-2xl font-semibold text-base active:scale-[0.97] transition-all min-h-[44px]"
-            >
-              Get it
-            </button>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={() => {
+                  setIsCustomClosing(true);
+                  setTimeout(() => {
+                    setShowCustomInstallBanner(false);
+                    setIsCustomClosing(false);
+                  }, 300);
+                }}
+                className="bg-primary text-text-inverse px-6 py-2 rounded-2xl font-semibold text-sm active:scale-[0.97] transition-all min-h-[44px]"
+              >
+                Get
+              </button>
+              <button
+                onClick={() => {
+                  setIsCustomClosing(true);
+                  setTimeout(() => {
+                    setShowCustomInstallBanner(false);
+                    setIsCustomClosing(false);
+                  }, 300);
+                }}
+                className="text-text-secondary font-medium px-3 py-2 text-sm active:scale-[0.97] transition-all"
+              >
+                Not now
+              </button>
+            </div>
           </div>
         </div>
       )}
