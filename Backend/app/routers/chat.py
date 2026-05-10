@@ -93,8 +93,25 @@ Be helpful, concise, friendly, and proactive."""
                     db.add(reminder)
                     db.commit()
                     db.refresh(reminder)
+                    
+                     db.add(reminder)
+        db.commit()
+        db.refresh(reminder)
 
-                    # Remove the JSON block from the display reply and add confirmation
+        from ..services.realtime import manager
+        await manager.send_to_user(auth["user_id"], {
+            "type": "reminder_created",
+            "reminder": {
+                "id": reminder.id,
+                "text": reminder.text,
+                "time": reminder.time,
+                "date": reminder.date,
+                "context": reminder.context,
+                "completed": reminder.completed
+            },
+            "source": "ai_chat"
+        })
+
                     reply = re.sub(r'```json\s*\n.*?\n\s*```', '', reply, flags=re.DOTALL).strip()
                     reply += f"\n\n✅ **Reminder successfully created!**\n**ID:** {reminder.id} | {reminder.date or 'Today'} {reminder.time or ''} | {reminder.context}"
             except Exception:

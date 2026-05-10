@@ -65,9 +65,23 @@ async def create_reminder(request):
             context=body.get("context", "Work"),
             notified=False
         )
-        db.add(reminder)
+                db.add(reminder)
         db.commit()
         db.refresh(reminder)
+        
+        from ..services.realtime import manager
+        await manager.send_to_user(auth["user_id"], {
+            "type": "reminder_created",
+            "reminder": {
+                "id": reminder.id,
+                "text": reminder.text,
+                "time": reminder.time,
+                "date": reminder.date,
+                "context": reminder.context,
+                "completed": reminder.completed
+            }
+        })
+        
         return JSONResponse({"success": True, "reminder": {
             "id": reminder.id,
             "text": reminder.text,
@@ -77,7 +91,7 @@ async def create_reminder(request):
             "completed": reminder.completed
         }})
     finally:
-        db.close()   # FIXED: removed extra ')'
+        db.close()
 
 async def complete_reminder(request):
     auth = await require_auth(request)
@@ -92,8 +106,15 @@ async def complete_reminder(request):
         ).first()
         if not reminder:
             return JSONResponse({"success": False, "error": "Reminder not found"}, status_code=404)
-        reminder.completed = True
+       reminder.completed = True
         db.commit()
+        
+        from ..services.realtime import manager
+        await manager.send_to_user(auth["user_id"], {
+            "type": "reminder_completed",
+            "reminder_id": reminder_id
+        })
+        
         return JSONResponse({"success": True})
     finally:
         db.close()
