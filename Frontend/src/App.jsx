@@ -20,8 +20,6 @@ function App() {
 const [deferredPrompt, setDeferredPrompt] = useState(null);
 const [showInstallBanner, setShowInstallBanner] = useState(false);
 const [isInstallClosing, setIsInstallClosing] = useState(false);
-const [showCustomInstallBanner, setShowCustomInstallBanner] = useState(false);
-const [isCustomClosing, setIsCustomClosing] = useState(false);
 const [isOffline, setIsOffline] = useState(!navigator.onLine);
 const [isInstalled, setIsInstalled] = useState(false);
 
@@ -93,12 +91,11 @@ const [isInstalled, setIsInstalled] = useState(false);
     };
     checkIfInstalled();
 
-    const handleBeforeInstallPrompt = (e) => {
+  const handleBeforeInstallPrompt = (e) => {
       if (isInstalled) return;
       e.preventDefault();
       setDeferredPrompt(e);
       setShowInstallBanner(true);
-      setShowCustomInstallBanner(false);
     };
 
     const handleAppInstalled = () => {
@@ -115,16 +112,6 @@ const [isInstalled, setIsInstalled] = useState(false);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, [isInstalled]);
-  
-    useEffect(() => {
-    const timer = setTimeout(() => {
-      const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-      if (!deferredPrompt && !isInstalled && !standalone && !showInstallBanner && !showCustomInstallBanner) {
-        setShowCustomInstallBanner(true);
-      }
-    }, 2500);
-    return () => clearTimeout(timer);
-  }, [deferredPrompt, isInstalled]);
   
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -267,78 +254,39 @@ const [isInstalled, setIsInstalled] = useState(false);
   }
 
     return (
-          <AuthProvider>
+    <AuthProvider>
     {showInstallBanner && deferredPrompt && !isInstalled && (
         <div className={`fixed inset-x-0 top-0 z-[9999] bg-white dark:bg-foundation border-b border-border flex items-center px-4 py-3 transition-all duration-300 ease-out ${isInstallClosing ? '-translate-y-full' : 'translate-y-0'}`}>
           <div className="flex items-center gap-3 w-full max-w-5xl mx-auto">
+            <button
+              onClick={() => {
+                setIsInstallClosing(true);
+                setTimeout(() => {
+                  setShowInstallBanner(false);
+                  setIsInstallClosing(false);
+                  setDeferredPrompt(null);
+                }, 300);
+              }}
+              className="text-text-secondary p-2 -ml-2 active:scale-[0.97] transition-all min-h-[44px] min-w-[44px] flex items-center justify-center"
+              aria-label="Dismiss"
+            >
+              <span className="text-2xl leading-none">×</span>
+            </button>
             <img src="/remindarin.png" alt="Remindarin" className="w-10 h-10 rounded-2xl flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <div className="font-semibold text-base text-text-primary">Remindarin</div>
-              <div className="text-xs text-text-secondary -mt-0.5">Smart context-aware reminders</div>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <button
-                onClick={handleInstallClick}
-                className="bg-accent-positive text-text-inverse px-6 py-2 rounded-2xl font-semibold text-sm active:scale-[0.97] transition-all min-h-[44px]"
-              >
-                Get
-              </button>
-              <button
-                onClick={() => {
-                  setIsInstallClosing(true);
-                  setTimeout(() => {
-                    setShowInstallBanner(false);
-                    setIsInstallClosing(false);
-                    setDeferredPrompt(null);
-                  }, 300);
-                }}
-                className="text-text-secondary font-medium px-3 py-2 text-sm active:scale-[0.97] transition-all"
-              >
-                Not now
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-{showCustomInstallBanner && (
-        <div className={`fixed inset-x-0 top-0 z-[9999] bg-white dark:bg-foundation border-b border-border flex items-center px-4 py-3 transition-all duration-300 ease-out ${isCustomClosing ? '-translate-y-full' : 'translate-y-0'}`}>
-          <div className="flex items-center gap-3 w-full max-w-5xl mx-auto">
-            <img src="/remindarin.png" alt="Remindarin" className="w-10 h-10 rounded-2xl flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <div className="font-semibold text-base text-text-primary">Remindarin</div>
-              <div className="text-xs text-text-secondary -mt-0.5">
-                {/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
-                  ? "Tap Share → Add to Home Screen"
-                  : "Menu → Install app"}
+              <div className="font-semibold text-base text-text-primary">Download the app</div>
+              <div className="text-xs text-text-secondary -mt-0.5 flex items-center gap-1">
+                <span>4.9</span>
+                <span className="text-warning">★★★★★</span>
+                <span>• 120k+</span>
               </div>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <button
-                onClick={() => {
-                  setIsCustomClosing(true);
-                  setTimeout(() => {
-                    setShowCustomInstallBanner(false);
-                    setIsCustomClosing(false);
-                  }, 300);
-                }}
-                className="bg-accent-positive text-text-inverse px-6 py-2 rounded-2xl font-semibold text-sm active:scale-[0.97] transition-all min-h-[44px]"
-              >
-                Get
-              </button>
-              <button
-                onClick={() => {
-                  setIsCustomClosing(true);
-                  setTimeout(() => {
-                    setShowCustomInstallBanner(false);
-                    setIsCustomClosing(false);
-                  }, 300);
-                }}
-                className="text-text-secondary font-medium px-3 py-2 text-sm active:scale-[0.97] transition-all"
-              >
-                Not now
-              </button>
-            </div>
+            <button
+              onClick={handleInstallClick}
+              className="bg-accent-positive text-text-inverse px-6 py-2 rounded-2xl font-semibold text-sm active:scale-[0.97] transition-all min-h-[44px]"
+            >
+              Get
+            </button>
           </div>
         </div>
       )}
