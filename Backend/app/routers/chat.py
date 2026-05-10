@@ -70,12 +70,14 @@ If you create a reminder, end your response with this exact JSON block:
   "date": "YYYY-MM-DD or null for today",
   "context": "Work / Personal / Health / Other"
 }}
+```
 
 Be helpful, concise, friendly, and proactive."""
 
         reply = await call_nvidia_ai(user_message, system_prompt)
 
-        json_match = re.search(r'```json
+        # FIX: was an unterminated string literal — regex now properly closed
+        json_match = re.search(r'```json\s*\n(.*?)\n\s*```', reply, flags=re.DOTALL)
         if json_match:
             try:
                 json_str = json_match.group(1).strip()
