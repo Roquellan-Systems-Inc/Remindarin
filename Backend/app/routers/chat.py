@@ -73,9 +73,8 @@ If you create a reminder, end your response with this exact JSON block:
 
 Be helpful, concise, friendly, and proactive."""
 
-        reply = await call_nvidia_ai(user_message, system_prompt)
+     reply = await call_nvidia_ai(user_message, system_prompt)
 
-        # Extract JSON reminder block from the AI reply
         json_match = re.search(r'```json\s*\n(.*?)\n\s*```', reply, re.DOTALL)
         if json_match:
             try:
@@ -93,29 +92,25 @@ Be helpful, concise, friendly, and proactive."""
                     db.add(reminder)
                     db.commit()
                     db.refresh(reminder)
-                    
-                     db.add(reminder)
-        db.commit()
-        db.refresh(reminder)
 
-        from ..services.realtime import manager
-        await manager.send_to_user(auth["user_id"], {
-            "type": "reminder_created",
-            "reminder": {
-                "id": reminder.id,
-                "text": reminder.text,
-                "time": reminder.time,
-                "date": reminder.date,
-                "context": reminder.context,
-                "completed": reminder.completed
-            },
-            "source": "ai_chat"
-        })
+                    from ..services.realtime import manager
+                    await manager.send_to_user(auth["user_id"], {
+                        "type": "reminder_created",
+                        "reminder": {
+                            "id": reminder.id,
+                            "text": reminder.text,
+                            "time": reminder.time,
+                            "date": reminder.date,
+                            "context": reminder.context,
+                            "completed": reminder.completed
+                        },
+                        "source": "ai_chat"
+                    })
 
                     reply = re.sub(r'```json\s*\n.*?\n\s*```', '', reply, flags=re.DOTALL).strip()
                     reply += f"\n\n✅ **Reminder successfully created!**\n**ID:** {reminder.id} | {reminder.date or 'Today'} {reminder.time or ''} | {reminder.context}"
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"AI reminder action failed (non-critical): {str(e)[:120]}")
 
         assistant_msg = ChatMessage(role="assistant", content=reply)
         db.add(assistant_msg)
