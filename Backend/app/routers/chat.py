@@ -73,7 +73,7 @@ If you create a reminder, end your response with this exact JSON block:
 
 Be helpful, concise, friendly, and proactive."""
 
-     reply = await call_nvidia_ai(user_message, system_prompt)
+      reply = await call_nvidia_ai(user_message, system_prompt)
 
         json_match = re.search(r'```json\s*\n(.*?)\n\s*```', reply, re.DOTALL)
         if json_match:
