@@ -183,17 +183,6 @@ const [isInstalled, setIsInstalled] = useState(false);
     return () => clearTimeout(timer);
   }, []);
   
-    useEffect(() => {
-    const timer = setTimeout(() => {
-      const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-      if (!isInstalled && !standalone && !showInstallBanner) {
-        setShowInstallBanner(true);
-      }
-    }, 2500);
-    return () => clearTimeout(timer);
-  }, [isInstalled, showInstallBanner]);
-
-  // Push Notifications (Remindarin PWA) – safe inside AuthProvider
   const subscribeToPush = async () => {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
       console.warn('Push API not supported');
@@ -306,30 +295,38 @@ const [isInstalled, setIsInstalled] = useState(false);
 
     return (
     <AuthProvider>
-        {showInstallBanner && !isInstalled && (
+                {showInstallBanner && deferredPrompt && !isInstalled && (
       <div 
-        className={`fixed inset-x-0 bottom-0 z-[9999] bg-white dark:bg-foundation border-t border-border rounded-t-3xl shadow-2xl flex flex-col transition-all duration-300 ease-out ${isInstallClosing ? 'translate-y-full' : ''}`}
-        style={installDragOffset > 0 && !isInstallClosing ? { transform: `translateY(${installDragOffset}px)` } : undefined}
-        onTouchStart={handleInstallTouchStart}
-        onTouchMove={handleInstallTouchMove}
-        onTouchEnd={handleInstallTouchEnd}
+        className={`fixed inset-x-0 top-0 z-[9999] bg-white dark:bg-foundation border-b border-border flex items-center px-4 py-3 transition-all duration-300 ease-out ${isInstallClosing ? '-translate-y-full' : 'translate-y-0'}`}
       >
-        <div className="mx-auto w-12 h-1 bg-text-secondary/30 dark:bg-text-secondary/30 rounded-full mt-3 mb-6 flex-shrink-0"></div>
-        <div className="px-6 pb-8 flex flex-col gap-6">
-          <div className="flex items-center gap-4">
-            <img src="/remindarin.png" alt="Remindarin" className="w-14 h-14 rounded-2xl flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <div className="font-semibold text-xl text-text-primary">Download the app</div>
-              <div className="text-sm text-text-secondary mt-0.5 flex items-center gap-1">
-                <span>4.9</span>
-                <span className="text-warning">★★★★★</span>
-                <span>• 120k+</span>
-              </div>
+        <div className="flex items-center gap-3 w-full max-w-5xl mx-auto">
+          <button
+            onClick={() => {
+              setIsInstallClosing(true);
+              setTimeout(() => {
+                setShowInstallBanner(false);
+                setIsInstallClosing(false);
+                setDeferredPrompt(null);
+                setInstallDragOffset(0);
+              }, 300);
+            }}
+            className="text-text-secondary p-2 -ml-2 active:scale-[0.97] transition-all min-h-[44px] min-w-[44px] flex items-center justify-center"
+            aria-label="Dismiss"
+          >
+            <span className="text-xl">×</span>
+          </button>
+          <img src="/remindarin.png" alt="Remindarin" className="w-10 h-10 rounded-2xl flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <div className="font-semibold text-base text-text-primary">Download the app</div>
+            <div className="text-xs text-text-secondary -mt-0.5 flex items-center gap-1">
+              <span>4.9</span>
+              <span className="text-warning">★★★★★</span>
+              <span>• 120k+</span>
             </div>
           </div>
           <button
             onClick={handleInstallClick}
-            className="w-full bg-accent-positive text-text-inverse py-4 rounded-2xl font-semibold text-base active:scale-[0.97] transition-all min-h-[44px]"
+            className="bg-accent-positive text-text-inverse px-6 py-2 rounded-2xl font-semibold text-sm active:scale-[0.97] transition-all min-h-[44px]"
           >
             Get
           </button>
