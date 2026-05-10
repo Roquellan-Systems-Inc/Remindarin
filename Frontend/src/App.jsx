@@ -17,82 +17,7 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
-const [showInstallBanner, setShowInstallBanner] = useState(false);
-const [isInstallClosing, setIsInstallClosing] = useState(false);
-const [installDragOffset, setInstallDragOffset] = useState(0);
-const [isDraggingInstall, setIsDraggingInstall] = useState(false);
-const [installStartY, setInstallStartY] = useState(0);
 const [isOffline, setIsOffline] = useState(!navigator.onLine);
-const [isInstalled, setIsInstalled] = useState(false);
-const [isIOS, setIsIOS] = useState(false);
-const deferredPromptRef = useRef(null);
-const isInstalledRef = useRef(false);;
-
-    const handleInstallClick = async () => {
-    if (isIOS) {
-      // iOS Safari never fires beforeinstallprompt — guide user to native flow
-      alert('To install Remindarin on iPhone:\n1. Tap the Share button (⬆️) at the bottom of Safari\n2. Scroll and select "Add to Home Screen"\n3. Confirm with "Add"');
-      setShowInstallBanner(false);
-      return;
-    }
-
-    const promptEvent = deferredPromptRef.current;
-
-    if (promptEvent) {
-      setShowInstallBanner(false);
-      deferredPromptRef.current = null;
-
-      try {
-        promptEvent.prompt();
-        const { outcome } = await promptEvent.userChoice;
-        console.log(`✅ Install prompt outcome: ${outcome}`);
-
-        if (outcome === 'accepted') {
-          setIsInstalled(true);
-          isInstalledRef.current = true;
-        }
-      } catch (err) {
-        console.error('Install prompt failed:', err);
-      }
-    } else {
-      setIsInstallClosing(true);
-      setTimeout(() => {
-        setShowInstallBanner(false);
-        setIsInstallClosing(false);
-        setInstallDragOffset(0);
-      }, 300);
-    }
-  };
-
-  const handleInstallTouchStart = (e) => {
-    setIsDraggingInstall(true);
-    setInstallStartY(e.touches[0].clientY);
-    setInstallDragOffset(0);
-  };
-
-  const handleInstallTouchMove = (e) => {
-    if (!isDraggingInstall) return;
-    const currentY = e.touches[0].clientY;
-    const delta = currentY - installStartY;
-    if (delta > 0) {
-      setInstallDragOffset(delta);
-    }
-  };
-
-  const handleInstallTouchEnd = () => {
-    setIsDraggingInstall(false);
-    if (installDragOffset > 80) {
-      setIsInstallClosing(true);
-      setTimeout(() => {
-        setShowInstallBanner(false);
-        setIsInstallClosing(false);
-        setInstallDragOffset(0);
-        deferredPromptRef.current = null;
-      }, 300);
-    } else {
-      setInstallDragOffset(0);
-    }
-  };
 
   const handleBiometricVerify = async () => {
     const biometricEnabled = localStorage.getItem('biometricEnabled') === 'true';
@@ -141,48 +66,6 @@ const isInstalledRef = useRef(false);;
       }
     }
   };
-
-   useEffect(() => {
-        const checkIfInstalled = () => {
-      const standalone = window.matchMedia('(display-mode: standalone)').matches || 
-                        (window.navigator.standalone === true);
-      if (standalone) {
-        isInstalledRef.current = true;
-        setIsInstalled(true);
-        setShowInstallBanner(false);
-        deferredPromptRef.current = null;
-      }
-    };
-    checkIfInstalled();
-
-    const detectPlatform = () => {
-      const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-      setIsIOS(isIOSDevice);
-    };
-    detectPlatform();
-
-    const handleBeforeInstallPrompt = (e) => {
-      if (isInstalledRef.current) return;
-      e.preventDefault();
-      deferredPromptRef.current = e;
-      setShowInstallBanner(true);
-    };
-
-    const handleAppInstalled = () => {
-      isInstalledRef.current = true;
-      setShowInstallBanner(false);
-      deferredPromptRef.current = null;
-      setIsInstalled(true);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', handleAppInstalled);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
-    };
-  }, []);
   
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -325,45 +208,6 @@ const isInstalledRef = useRef(false);;
 
     return (
     <AuthProvider>
-            {!isInstalled && (showInstallBanner || isIOS) && (
-      <div 
-        className={`fixed inset-x-0 top-0 z-[9999] bg-white dark:bg-foundation border-b border-border flex items-center px-4 py-3 transition-all duration-300 ease-out ${isInstallClosing ? '-translate-y-full' : 'translate-y-0'}`}
-      >
-        <div className="flex items-center gap-3 w-full max-w-5xl mx-auto">
-          <button
-            onClick={() => {
-              setIsInstallClosing(true);
-              setTimeout(() => {
-                setShowInstallBanner(false);
-                setIsInstallClosing(false);
-                deferredPromptRef.current = null;
-                setInstallDragOffset(0);
-              }, 300);
-            }}
-            className="text-text-secondary p-2 -ml-2 active:scale-[0.97] transition-all min-h-[44px] min-w-[44px] flex items-center justify-center"
-            aria-label="Dismiss"
-          >
-            <span className="text-xl">×</span>
-          </button>
-          <img src="/remindarin.png" alt="Remindarin" className="w-10 h-10 rounded-2xl flex-shrink-0" />
-          <div className="flex-1 min-w-0">
-            <div className="font-semibold text-base text-text-primary">Download the app</div>
-            <div className="text-xs text-text-secondary -mt-0.5 flex items-center gap-1">
-              <span>4.9</span>
-              <span className="text-warning">★★★★★</span>
-              <span>• 120k+</span>
-            </div>
-          </div>
-          <button
-            onClick={handleInstallClick}
-            className="bg-accent-positive text-text-inverse px-6 py-2 rounded-2xl font-semibold text-sm active:scale-[0.97] transition-all min-h-[44px]"
-          >
-            Get
-          </button>
-        </div>
-      </div>
-    )}
-
       <PushNotificationManager />
 
       <Router>
