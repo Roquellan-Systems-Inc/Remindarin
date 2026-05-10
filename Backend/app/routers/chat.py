@@ -1,200 +1,110 @@
-from .auth import require_auth
 from starlette.requests import Request
 from starlette.responses import JSONResponse
-import json
-from datetime import datetime, date
 from ..services.nvidia_ai import call_nvidia_ai
-from ..database import SessionLocal, Reminder
+from ..database import SessionLocal, ChatMessage, Reminder
+from .auth import require_auth
+from datetime import datetime, timedelta
+import re
+import json
 
-async def parse_reminder(request: Request):
-    try:
-        body = await request.json()
-    except Exception:
-        return JSONResponse({"success": False, "error": "Invalid JSON body"}, status_code=400)
-
-    system_prompt = """Extract structured reminder data from the user's message.
-Return ONLY valid JSON with these keys: text, time, location, priority, duration.
-If any value is missing, use null. Priority can be low, medium, or high."""
-
-    result = await call_nvidia_ai(body.get("text", ""), system_prompt)
-    
-    try:
-        data = json.loads(result)
-        return JSONResponse({"success": True, "reminder": data})
-    except Exception:
-        return JSONResponse({"success": False, "error": "Failed to parse reminder", "raw": result})
-
-async def list_reminders(request):
-    auth = await require_auth(request)
-    if isinstance(auth, JSONResponse):
-        return auth
-    db = SessionLocal()
-    try:
-        reminders = db.query(Reminder).filter(
-            Reminder.completed == False,
-            Reminder.user_id == auth["user_id"]
-        ).order_by(Reminder.time.asc()).all()
-        reminder_list = [
-            {
-                "id": r.id,
-                "text": r.text,
-                "time": r.time,
-                "date": r.date,
-                "context": r.context,
-                "completed": r.completed
-            } for r in reminders
-        ]
-        return JSONResponse({"reminders": reminder_list})
-    finally:
-        db.close()
-
-async def create_reminder(request):
+async def chat_with_ai(request: Request):
     auth = await require_auth(request)
     if isinstance(auth, JSONResponse):
         return auth
     try:
         body = await request.json()
     except Exception:
-        return JSONResponse({"success": False, "error": "Invalid JSON body"}, status_code=400)
+        return JSONResponse({"error": "Invalid JSON body"}, status_code=400)
+
+    user_message = body.get("message", "").strip()
+    if not user_message:
+        return JSONResponse({"error": "Message is required"}, status_code=400)
+
     db = SessionLocal()
     try:
-        reminder = Reminder(
-            user_id=auth["user_id"],
-            text=body.get("text"),
-            time=body.get("time"),
-            date=body.get("date"),
-            context=body.get("context", "Work"),
-            notified=False
-        )
-        db.add(reminder)
+        user_msg = ChatMessage(role="user", content=user_message)
+        db.add(user_msg)
         db.commit()
-        db.refresh(reminder)
-        
-        from ..services.realtime import manager
-        await manager.send_to_user(auth["user_id"], {
-            "type": "reminder_created",
-            "reminder": {
-                "id": reminder.id,
-                "text": reminder.text,
-                "time": reminder.time,
-                "date": reminder.date,
-                "context": reminder.context,
-                "completed": reminder.completed
-            }
-        })
-        
-        return JSONResponse({"success": True, "reminder": {
-            "id": reminder.id,
-            "text": reminder.text,
-            "time": reminder.time,
-            "date": reminder.date,
-            "context": reminder.context,
-            "completed": reminder.completed
-        }})
-    finally:
-        db.close()
+        db.refresh(user_msg)
 
-async def complete_reminder(request):
-    auth = await require_auth(request)
-    if isinstance(auth, JSONResponse):
-        return auth
-    reminder_id = int(request.path_params.get("reminder_id"))
-    db = SessionLocal()
-    try:
-        reminder = db.query(Reminder).filter(
-            Reminder.id == reminder_id,
-            Reminder.user_id == auth["user_id"]
-        ).first()
-        if not reminder:
-            return JSONResponse({"success": False, "error": "Reminder not found"}, status_code=404)
-        reminder.completed = True
-        db.commit()
-        
-        from ..services.realtime import manager
-        await manager.send_to_user(auth["user_id"], {
-            "type": "reminder_completed",
-            "reminder_id": reminder_id
-        })
-        
-        return JSONResponse({"success": True})
-    finally:
-        db.close()
+        # 🔒 FIX: filter reminders by the authenticated user
+        reminders = db.query(Reminder)\
+            .filter(Reminder.completed == False,
+                    Reminder.user_id == auth["user_id"])\
+            .order_by(Reminder.time.asc())\
+            .limit(8).all()
 
-async def get_dashboard(request):
-    auth = await require_auth(request)
-    if isinstance(auth, JSONResponse):
-        return auth
-    db = SessionLocal()
-    try:
-        # Active reminders for THIS user
-        reminders = db.query(Reminder).filter(
-            Reminder.completed == False,
-            Reminder.user_id == auth["user_id"]
-        ).order_by(Reminder.time.asc()).all()
+        reminder_context = "\n".join([
+            f"• {r.date or 'today'} {r.time or ''} | {r.context} | {r.text}"
+            for r in reminders
+        ]) or "No active reminders."
 
-        reminder_list = [
-            {
-                "id": r.id,
-                "text": r.text,
-                "time": r.time,
-                "date": r.date,
-                "context": r.context,
-                "completed": r.completed
-            } for r in reminders
-        ]
-
-        # Completed TODAY for THIS user
         now = datetime.now()
-        today_str = now.strftime("%Y-%m-%d")
+        tomorrow = (now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)).strftime("%Y-%m-%d")
+        current_full = now.strftime("%A, %B %d, %Y at %I:%M %p")
+        current_weekday = now.strftime("%A")
 
-        completed_today = db.query(Reminder).filter(
-            Reminder.completed == True,
-            Reminder.user_id == auth["user_id"],
-            # If date column is set, it should match today; if null, treat as today
-            (Reminder.date == today_str) | (Reminder.date == None)
-        ).count()
+        system_prompt = f"""You are Remindarin AI — a modern, intelligent productivity assistant.
 
-        # Weather (unchanged)
-        import httpx
-        try:
-            async with httpx.AsyncClient(timeout=8.0) as client:
-                weather_resp = await client.get(
-                    "https://api.open-meteo.com/v1/forecast",
-                    params={
-                        "latitude": 9.7392,
-                        "longitude": 118.7353,
-                        "current_weather": "true",
-                        "timezone": "Asia/Manila"
-                    }
-                )
-                weather_data = weather_resp.json().get("current_weather", {})
-                temp = round(weather_data.get("temperature", 28))
-                wcode = weather_data.get("weathercode", 0)
-                condition_map = {
-                    0: "Clear skies", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
-                    45: "Fog", 48: "Depositing rime fog", 51: "Light drizzle", 53: "Moderate drizzle",
-                    55: "Dense drizzle", 61: "Light rain", 63: "Moderate rain", 65: "Heavy rain",
-                    71: "Light snow", 73: "Moderate snow", 75: "Heavy snow", 95: "Thunderstorm"
-                }
-                condition = condition_map.get(wcode, "Cloudy")
-                weather = {"temp": temp, "condition": condition}
-        except:
-            weather = {"temp": 28, "condition": "Cloudy"}
+CURRENT DATE AND TIME: {current_full} ({current_weekday})
 
-        hour = now.hour
-        if completed_today >= 5 or (hour >= 6 and hour <= 10):
-            energy_level = "high"
-        elif completed_today >= 2 or (hour >= 11 and hour <= 15):
-            energy_level = "medium"
-        else:
-            energy_level = "low"
+Current active reminders:
+{reminder_context}
 
-        return JSONResponse({
-            "weather": weather,
-            "energy_level": energy_level,
-            "reminders": reminder_list,
-            "completed_today": completed_today,
-            "streak": 12
-        })
+You have full memory of the conversation. You can create new reminders instantly.
+
+When the user asks to add, create, schedule, remind, or set a reminder, ALWAYS create it using the real current date/time above. 
+Understand relative dates correctly:
+- "tomorrow" = {tomorrow}
+- "next week" = calculate from today
+- "this afternoon" = today at appropriate time
+
+Respond conversationally in clean professional Markdown.
+If you create a reminder, end your response with this exact JSON block:
+
+```json
+{{
+  "action": "create_reminder",
+  "text": "exact reminder text",
+  "time": "HH:MM",
+  "date": "YYYY-MM-DD or null for today",
+  "context": "Work / Personal / Health / Other"
+}}
+
+Be helpful, concise, friendly, and proactive."""
+
+        reply = await call_nvidia_ai(user_message, system_prompt)
+
+        # Extract JSON reminder block from the AI reply
+        json_match = re.search(r'```json\s*\n(.*?)\n\s*```', reply, re.DOTALL)
+        if json_match:
+            try:
+                json_str = json_match.group(1).strip()
+                action_data = json.loads(json_str)
+                if action_data.get("action") == "create_reminder":
+                    reminder = Reminder(
+                        user_id=auth["user_id"],
+                        text=action_data.get("text", ""),
+                        time=action_data.get("time"),
+                        date=action_data.get("date"),
+                        context=action_data.get("context", "Work"),
+                        notified=False
+                    )
+                    db.add(reminder)
+                    db.commit()
+                    db.refresh(reminder)
+
+                    # Remove the JSON block from the display reply and add confirmation
+                    reply = re.sub(r'```json\s*\n.*?\n\s*```', '', reply, flags=re.DOTALL).strip()
+                    reply += f"\n\n✅ **Reminder successfully created!**\n**ID:** {reminder.id} | {reminder.date or 'Today'} {reminder.time or ''} | {reminder.context}"
+            except Exception:
+                pass
+
+        assistant_msg = ChatMessage(role="assistant", content=reply)
+        db.add(assistant_msg)
+        db.commit()
+
+        return JSONResponse({"reply": reply})
+
     finally:
         db.close()
