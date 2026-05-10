@@ -17,7 +17,6 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
-const [deferredPrompt, setDeferredPrompt] = useState(null);
 const [showInstallBanner, setShowInstallBanner] = useState(false);
 const [isInstallClosing, setIsInstallClosing] = useState(false);
 const [installDragOffset, setInstallDragOffset] = useState(0);
@@ -25,10 +24,18 @@ const [isDraggingInstall, setIsDraggingInstall] = useState(false);
 const [installStartY, setInstallStartY] = useState(0);
 const [isOffline, setIsOffline] = useState(!navigator.onLine);
 const [isInstalled, setIsInstalled] = useState(false);
+const [isIOS, setIsIOS] = useState(false);
 const deferredPromptRef = useRef(null);
-const isInstalledRef = useRef(false);
+const isInstalledRef = useRef(false);;
 
-  const handleInstallClick = async () => {
+    const handleInstallClick = async () => {
+    if (isIOS) {
+      // iOS Safari never fires beforeinstallprompt — guide user to native flow
+      alert('To install Remindarin on iPhone:\n1. Tap the Share button (⬆️) at the bottom of Safari\n2. Scroll and select "Add to Home Screen"\n3. Confirm with "Add"');
+      setShowInstallBanner(false);
+      return;
+    }
+
     const promptEvent = deferredPromptRef.current;
 
     if (promptEvent) {
@@ -80,7 +87,7 @@ const isInstalledRef = useRef(false);
         setShowInstallBanner(false);
         setIsInstallClosing(false);
         setInstallDragOffset(0);
-        setDeferredPrompt(null);
+        deferredPromptRef.current = null;
       }, 300);
     } else {
       setInstallDragOffset(0);
@@ -136,7 +143,7 @@ const isInstalledRef = useRef(false);
   };
 
    useEffect(() => {
-    const checkIfInstalled = () => {
+        const checkIfInstalled = () => {
       const standalone = window.matchMedia('(display-mode: standalone)').matches || 
                         (window.navigator.standalone === true);
       if (standalone) {
@@ -147,6 +154,12 @@ const isInstalledRef = useRef(false);
       }
     };
     checkIfInstalled();
+
+    const detectPlatform = () => {
+      const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      setIsIOS(isIOSDevice);
+    };
+    detectPlatform();
 
     const handleBeforeInstallPrompt = (e) => {
       if (isInstalledRef.current) return;
@@ -312,7 +325,7 @@ const isInstalledRef = useRef(false);
 
     return (
     <AuthProvider>
-      {showInstallBanner && deferredPromptRef.current && !isInstalled && (
+            {!isInstalled && (showInstallBanner || isIOS) && (
       <div 
         className={`fixed inset-x-0 top-0 z-[9999] bg-white dark:bg-foundation border-b border-border flex items-center px-4 py-3 transition-all duration-300 ease-out ${isInstallClosing ? '-translate-y-full' : 'translate-y-0'}`}
       >
