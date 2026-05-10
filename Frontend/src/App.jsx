@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import AIChat from './pages/AIChat';
@@ -25,13 +25,28 @@ const [isDraggingInstall, setIsDraggingInstall] = useState(false);
 const [installStartY, setInstallStartY] = useState(0);
 const [isOffline, setIsOffline] = useState(!navigator.onLine);
 const [isInstalled, setIsInstalled] = useState(false);
+const deferredPromptRef = useRef(null);
+const isInstalledRef = useRef(false);
 
-        const handleInstallClick = async () => {
-    if (deferredPrompt) {
+  const handleInstallClick = async () => {
+    const promptEvent = deferredPromptRef.current;
+
+    if (promptEvent) {
       setShowInstallBanner(false);
-      setDeferredPrompt(null);
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
+      deferredPromptRef.current = null;
+
+      try {
+        promptEvent.prompt();
+        const { outcome } = await promptEvent.userChoice;
+        console.log(`✅ Install prompt outcome: ${outcome}`);
+
+        if (outcome === 'accepted') {
+          setIsInstalled(true);
+          isInstalledRef.current = true;
+        }
+      } catch (err) {
+        console.error('Install prompt failed:', err);
+      }
     } else {
       setIsInstallClosing(true);
       setTimeout(() => {
@@ -120,28 +135,30 @@ const [isInstalled, setIsInstalled] = useState(false);
     }
   };
 
-        useEffect(() => {
+   useEffect(() => {
     const checkIfInstalled = () => {
       const standalone = window.matchMedia('(display-mode: standalone)').matches || 
                         (window.navigator.standalone === true);
       if (standalone) {
+        isInstalledRef.current = true;
         setIsInstalled(true);
         setShowInstallBanner(false);
-        setDeferredPrompt(null);
+        deferredPromptRef.current = null;
       }
     };
     checkIfInstalled();
 
-  const handleBeforeInstallPrompt = (e) => {
-      if (isInstalled) return;
+    const handleBeforeInstallPrompt = (e) => {
+      if (isInstalledRef.current) return;
       e.preventDefault();
-      setDeferredPrompt(e);
+      deferredPromptRef.current = e;
       setShowInstallBanner(true);
     };
 
     const handleAppInstalled = () => {
+      isInstalledRef.current = true;
       setShowInstallBanner(false);
-      setDeferredPrompt(null);
+      deferredPromptRef.current = null;
       setIsInstalled(true);
     };
 
@@ -152,7 +169,7 @@ const [isInstalled, setIsInstalled] = useState(false);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
-  }, [isInstalled]);
+  }, []);
   
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -295,7 +312,7 @@ const [isInstalled, setIsInstalled] = useState(false);
 
     return (
     <AuthProvider>
-                {showInstallBanner && deferredPrompt && !isInstalled && (
+      {showInstallBanner && deferredPromptRef.current && !isInstalled && (
       <div 
         className={`fixed inset-x-0 top-0 z-[9999] bg-white dark:bg-foundation border-b border-border flex items-center px-4 py-3 transition-all duration-300 ease-out ${isInstallClosing ? '-translate-y-full' : 'translate-y-0'}`}
       >
@@ -306,7 +323,7 @@ const [isInstalled, setIsInstalled] = useState(false);
               setTimeout(() => {
                 setShowInstallBanner(false);
                 setIsInstallClosing(false);
-                setDeferredPrompt(null);
+                deferredPromptRef.current = null;
                 setInstallDragOffset(0);
               }, 300);
             }}
