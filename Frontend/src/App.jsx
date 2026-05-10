@@ -89,6 +89,8 @@ const [isOffline, setIsOffline] = useState(!navigator.onLine);
   }, []);
 
   useEffect(() => {
+    if (window.location.pathname === '/') return;
+
     const timer = setTimeout(() => {
       handleBiometricVerify();
     }, 600);
